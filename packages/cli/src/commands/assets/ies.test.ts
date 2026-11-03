@@ -24,7 +24,6 @@ const asset: Asset = {
   description: '',
   keywords: '',
   shareLicense: 'CC_BY',
-  aiUsage: 'UNDISCLOSED',
   commentMode: 'ENABLED',
   reported: false,
   likeCount: 0,
