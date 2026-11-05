@@ -18,7 +18,7 @@ it.each([['login'], ['auth', 'login']])('stores credentials via %j', async (...c
   await runCli([...command, '-t', token, '--host', 'https://override.test.example'], deps);
   expect(await deps.persistentConfig.get()).toEqual({
     host: 'https://override.test.example',
-    auth: { type: 'secretToken', token },
+    auth: { type: 'secretToken', token, loggedInAt: expect.any(String) },
   });
 });
 

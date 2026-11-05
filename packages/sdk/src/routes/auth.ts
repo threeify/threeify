@@ -13,8 +13,17 @@ export const refreshAccessTokenBodySchema = z.strictObject({
 
 export type RefreshAccessTokenBody = z.infer<typeof refreshAccessTokenBodySchema>;
 
+export const authCredentialInfoSchema = z.strictObject({
+  username: z.string().describe('The username of the authenticated user or service account'),
+  createdAt: z.iso.datetime({ offset: true }).describe('When the session or API token was created'),
+  expiresAt: z.iso.datetime({ offset: true }).nullable().describe('Session expiry; null for non-expiring API tokens'),
+});
+
+export type AuthCredentialInfo = z.infer<typeof authCredentialInfoSchema>;
+
 export const refreshAccessTokenResultSchema = z.strictObject({
   accessToken: z.string(),
+  auth: authCredentialInfoSchema.optional().describe('Credential details, when supported by the server'),
 });
 
 export type RefreshAccessTokenResult = z.infer<typeof refreshAccessTokenResultSchema>;

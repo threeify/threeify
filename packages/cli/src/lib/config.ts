@@ -4,6 +4,7 @@ import { getEnvConfig } from './env-vars.ts';
 export type AuthConfig = {
   type: 'session' | 'secretToken';
   token: string;
+  loggedInAt?: string;
   user?: {
     id: string;
     name: string;
