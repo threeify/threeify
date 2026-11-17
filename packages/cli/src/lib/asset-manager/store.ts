@@ -6,7 +6,13 @@ import { homedir, platform } from 'node:os';
 import { dirname, join, resolve, relative } from 'node:path';
 import { Readable, Transform } from 'node:stream';
 import { pipeline } from 'node:stream/promises';
-import { nativeHashHex, relativeAssetPath, relativeAliasPath, type LockedAsset } from '@landofassets/runtime/node';
+import {
+  nativeHashHex,
+  relativeAssetPath,
+  relativeAliasPath,
+  type LockedAsset,
+  type NativeAsset,
+} from '@landofassets/runtime/node';
 import { hashFileSha256 } from '../hash.ts';
 
 export function storePath(env: NodeJS.ProcessEnv = process.env): string {
@@ -164,6 +170,15 @@ export async function pullAsset(
     if (refresh || !(await exists(destination))) await download(entry.url, destination, undefined, onBytes);
     return;
   }
+  await materialize(await cacheNativeAsset(entry, store, onBytes), destination);
+}
+
+/** Download into the existing global cache as soon as metadata is available. */
+export async function cacheNativeAsset(
+  entry: NativeAsset,
+  store: string,
+  onBytes?: (count: number) => void,
+): Promise<string> {
   const hex = nativeHashHex(entry.hash);
   const cached = contentPath(store, hex);
   let pending = pendingContent.get(cached);
@@ -179,7 +194,7 @@ export async function pullAsset(
   } finally {
     if (pendingContent.get(cached) === pending) pendingContent.delete(cached);
   }
-  await materialize(cached, destination);
+  return cached;
 }
 
 /** Project lock roots, rather than inode counts, track clones, hardlinks and copies alike. */

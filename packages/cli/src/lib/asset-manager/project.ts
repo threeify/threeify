@@ -12,6 +12,7 @@ import {
   assetVersionSchema,
 } from '@landofassets/sdk';
 import { parseLockfile, type Lockfile, type LockedAsset } from '@landofassets/runtime/node';
+import type { ScheduleTask } from './task-queue.ts';
 
 export type Manifest = { name: string; assets: Record<string, string>; workspaces?: string[] };
 export type Project = { root: string; current: string; manifests: Record<string, Manifest>; lock?: Lockfile };
@@ -215,11 +216,13 @@ export async function resolveProject(
     update?: Set<string>;
     api?: Registry;
     parallel?: number;
+    schedule?: ScheduleTask;
+    onResolved?: (entry: LockedAsset) => void;
   } = {},
 ): Promise<Lockfile> {
   if (options.frozen && !project.lock) throw new Error('Frozen lockfile requested but assets-lock.json is missing');
   const lock: Lockfile = { lockfileVersion: 1, importers: Object.create(null) };
-  const limit = pLimit(options.parallel ?? 8);
+  const limit: ScheduleTask = options.schedule ?? pLimit(options.parallel ?? 8);
   const pending: Promise<{ directory: string; alias: string; entry: LockedAsset }>[] = [];
   for (const key of Object.keys(project.manifests).toSorted()) {
     const manifest = project.manifests[key]!;
@@ -250,6 +253,7 @@ export async function resolveProject(
             if (options.frozen) throw new Error(`Frozen lockfile differs from assets.json: ${key}/${alias}`);
             entry = await resolveSource(specifier, old?.kind === 'loa' ? old.host : host, options.api);
           }
+          options.onResolved?.(entry);
           return { directory: key, alias, entry };
         }),
       );

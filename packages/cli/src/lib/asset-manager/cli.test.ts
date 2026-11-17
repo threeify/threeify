@@ -26,6 +26,9 @@ let latest: string;
 let metadataDelay = 0;
 let metadataActive = 0;
 let metadataPeak = 0;
+let holdMetadata = false;
+let releaseMetadata: (() => void) | undefined;
+let downloadBeforeMetadata = false;
 let failDownloads: boolean;
 let assetMissing: boolean;
 let rejectPublication: boolean;
@@ -113,7 +116,14 @@ beforeAll(async () => {
       const selector = path.split('@')[1];
       const version = selector === undefined || selector === 'latest' ? latest : selector === '1' ? '1.9.0' : selector;
       response.setHeader('Content-Type', 'application/json');
-      if (metadataDelay) {
+      if (holdMetadata && version === '2.0.0') {
+        const timer = setTimeout(() => releaseMetadata?.(), 1500);
+        releaseMetadata = () => {
+          clearTimeout(timer);
+          releaseMetadata = undefined;
+          response.end(JSON.stringify(assetResponse(version)));
+        };
+      } else if (metadataDelay) {
         metadataActive++;
         metadataPeak = Math.max(metadataPeak, metadataActive);
         setTimeout(() => {
@@ -122,6 +132,10 @@ beforeAll(async () => {
         }, metadataDelay);
       } else response.end(JSON.stringify(assetResponse(version)));
     } else if (path === `/files/${oid}`) {
+      if (releaseMetadata) {
+        downloadBeforeMetadata = true;
+        releaseMetadata();
+      }
       response.writeHead(failDownloads ? 503 : 200);
       response.end(serveCorrupt ? 'wrong bytes' : nativeBytes);
     } else if (path === '/external-v2.glb') {
@@ -151,6 +165,9 @@ beforeEach(async () => {
   metadataDelay = 0;
   metadataActive = 0;
   metadataPeak = 0;
+  holdMetadata = false;
+  releaseMetadata = undefined;
+  downloadBeforeMetadata = false;
   urlBytes = 'external version one';
   serveCorrupt = false;
   latest = '1.0.0';
@@ -549,4 +566,26 @@ it('uses install --parallel for metadata lookups as well as downloads', async ()
   requests = [];
   await run(['install', '--parallel', '2', '--frozen-lockfile']);
   expect(requests).toEqual([]);
+});
+
+it('starts a queued download while another metadata lookup is still pending', async () => {
+  holdMetadata = true;
+  await writeFile(
+    join(root, 'assets.json'),
+    JSON.stringify({
+      name: 'pipeline',
+      assets: {
+        a: 'acme/models/chair@1.0.0',
+        b: 'acme/models/chair@2.0.0',
+        c: 'acme/models/chair@1.0.0',
+      },
+    }),
+  );
+  await run(['install', '--parallel', '2']);
+  expect(downloadBeforeMetadata).toBe(true);
+  expect(releaseMetadata).toBeUndefined();
+  expect(await readFile(join(root, 'assets/a.glb'))).toEqual(nativeBytes);
+  expect(await readFile(join(root, 'assets/b.glb'))).toEqual(nativeBytes);
+  expect(await readlink(join(root, 'assets/c.glb'))).toBe('a.glb');
+  expect(requests.filter((request) => request.path.startsWith('/files/'))).toHaveLength(1);
 });
