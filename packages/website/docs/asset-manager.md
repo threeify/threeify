@@ -59,9 +59,7 @@ All installed files live in the project's gitignored `asset_cache/`. Native file
 
 ## Load assets in an application
 
-The runtime maps binding names to URLs before the first load. Use `assets.url('chair')` to obtain a URL and pass it to any loader. Binding names do not need a `loa:` prefix. `loaResolver` always returns a promise and takes an in-memory map (`{ resolution }`). Your application supplies the map; the resolver does not fetch it.
-
-### Vite and three.js
+`loaResolver` turns a JSON map of binding names to URLs into a resolver. It always returns a promise and takes an in-memory map (`{ resolution }`). Your application loads the map before initializing the resolver; the resolver does not fetch it.
 
 Install the runtime:
 
@@ -69,7 +67,45 @@ Install the runtime:
 npm install @landofassets/runtime
 ```
 
-Add the plugin to `vite.config.ts`:
+Use [`loa resolve`](./cli/loa-resolve.md) to export `asset-resolution.json`. It prefers locally installed files where present and remote URLs otherwise. The map associates each binding name with its resolved URL, for example:
+
+```json
+{
+  "chair": "https://example.com/models/chair.glb"
+}
+```
+
+Serve the map with your application, then fetch and parse it before creating the resolver. Your application controls the request, caching, and error handling:
+
+```ts
+import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
+import { loaResolver } from '@landofassets/runtime';
+
+const response = await fetch('/asset-resolution.json');
+if (!response.ok) throw new Error(`Could not load asset map: HTTP ${response.status}`);
+const resolution = await response.json();
+const assets = await loaResolver({ resolution });
+
+new GLTFLoader().load(assets.url('chair'), (gltf) => scene.add(gltf.scene));
+```
+
+`assets.url('chair')` returns the URL for that binding, ready to pass to any loader. Binding names do not need a `loa:` prefix. See the [`resolve` reference](./cli/loa-resolve.md) for mode overrides, serving local files, and regenerating the map.
+
+If you prefer passing an alias directly to a three.js loader, register the optional URL modifier:
+
+```ts
+import { LoadingManager } from 'three';
+
+const manager = new LoadingManager();
+manager.setURLModifier(assets.urlModifier);
+new GLTFLoader(manager).load('loa:chair', (gltf) => scene.add(gltf.scene));
+```
+
+Only this URL-modifier form requires `loa:`. The modifier receives every loader URL; the prefix distinguishes asset bindings from ordinary URLs and relative paths for textures, decoders, and other resources, which pass through unchanged. `loader.load('chair')` alone does not resolve a binding; use `loader.load(assets.url('chair'))` to avoid the prefix.
+
+### Vite
+
+The Vite plugin provides the resolution map through `virtual:loa`, so your application can import it instead of fetching a JSON file. Add the plugin to `vite.config.ts`:
 
 ```ts
 import { defineConfig } from 'vite';
@@ -99,33 +135,7 @@ const assets = await loaResolver({ resolution });
 new GLTFLoader().load(assets.url('chair'), (gltf) => scene.add(gltf.scene));
 ```
 
-If you prefer passing an alias directly to a three.js loader, register the optional URL modifier:
-
-```ts
-import { LoadingManager } from 'three';
-
-const manager = new LoadingManager();
-manager.setURLModifier(assets.urlModifier);
-new GLTFLoader(manager).load('loa:chair', (gltf) => scene.add(gltf.scene));
-```
-
-Only this URL-modifier form requires `loa:`. The modifier receives every loader URL; the prefix distinguishes asset bindings from ordinary URLs and relative paths for textures, decoders, and other resources, which pass through unchanged. `loader.load('chair')` alone does not resolve a binding; use `loader.load(assets.url('chair'))` to avoid the prefix.
-
-### Without Vite
-
-Use [`loa resolve`](./cli/loa-resolve.md) to export `asset-resolution.json`. It prefers locally installed files where present and remote URLs otherwise. Serve the map with your application, then fetch and parse it before creating the resolver. Your application controls the request, caching, and error handling:
-
-```ts
-import { loaResolver } from '@landofassets/runtime';
-
-const response = await fetch('/asset-resolution.json');
-if (!response.ok) throw new Error(`Could not load asset map: HTTP ${response.status}`);
-const resolution = await response.json();
-const assets = await loaResolver({ resolution });
-const chairUrl = assets.url('chair');
-```
-
-See the [`resolve` reference](./cli/loa-resolve.md) for mode overrides, serving local files, and regenerating the map.
+Both examples use the same `loaResolver({ resolution })` API; Vite supplies the map through an import instead of an application-managed JSON request.
 
 ## Review and change selections
 
