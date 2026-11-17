@@ -8,9 +8,9 @@ description: Keep asset selections in Git and load the same assets from the clou
 
 Build with a shared asset library without filling your Git repository with large binary files. The `loa` CLI lets you reuse models, materials, images, and lighting across projects while keeping each application's asset choices in a small, reviewable manifest.
 
-Pin an immutable version so a new upload cannot unexpectedly change your scene. Review asset updates alongside the code that uses them, try a different chair or lighting rig on a feature branch, and return to the previous selection when needed. Teammates and CI can pull the same verified native assets, with a shared cache that avoids downloading identical bytes for every project.
+Pin an immutable version so a new upload cannot unexpectedly change your scene. Review asset updates alongside the code that uses them, try a different chair or lighting rig on a feature branch, and return to the previous selection when needed. Teammates and CI can install the same verified native assets, with a shared cache that avoids downloading identical bytes for every project.
 
-Start loading from the cloud without pulling files first, pull assets for offline work, or bundle them into a self-contained deployment. Mix published LoA assets with direct URLs and live local files as you develop, then publish the assets you want to share and pin. Your code keeps the same asset names as the project grows.
+Start loading from the cloud without installing files first, install assets for offline work, or bundle them into a self-contained deployment. Mix published LoA assets with direct URLs and live local files as you develop, then publish the assets you want to share and pin. Your code keeps the same asset names as the project grows.
 
 ## Select assets with your code
 
@@ -36,29 +36,30 @@ Keys name bindings used by your code. Values contain the full source, even if yo
 
 ## Choose a source
 
-| Source                                               | Behavior                                                                           |
-| ---------------------------------------------------- | ---------------------------------------------------------------------------------- |
-| Native LoA ref, such as `acme/furniture/chair@2.3.0` | An immutable version with a verified content hash and shared global cache          |
-| Direct HTTP(S) URL                                   | Loaded directly or pulled into the project cache, without integrity checks         |
-| Live `file:` reference                               | Loaded from its original location; edits stay live and pulling leaves it untouched |
+| Source                                               | Behavior                                                                                |
+| ---------------------------------------------------- | --------------------------------------------------------------------------------------- |
+| Native LoA ref, such as `acme/furniture/chair@2.3.0` | An immutable version with a verified content hash and shared global cache               |
+| Direct HTTP(S) URL                                   | Loaded directly or installed into the project cache, without integrity checks           |
+| Live `file:` reference                               | Loaded from its original location; edits stay live and installation leaves it untouched |
 
 Only native LoA versions guarantee pinned bytes. Publish an asset when you need repeatable consumption; use URLs and local files for inputs that may change. See [`loa add`](./cli/loa-add.md) for source syntax, aliases, and version selection.
 
 ## Work from the cloud or locally
 
-You can load native assets remotely without downloading them first. To work locally, [pull the selected assets](./cli/loa-pull.md):
+You can load native assets remotely without downloading them first. To work locally, [install the selected assets](./cli/loa-pull.md):
 
 ```sh
-loa pull
+# pull and install are aliases
+loa install
+# Or use the three executable alias:
+three install
 ```
 
-All pulled files live in the project's gitignored `asset_cache/`. Native files come through the verified global store; direct URL downloads stay project-local. Live files stay at their original locations. The [`pull` reference](./cli/loa-pull.md) covers offline requirements, frozen lockfiles, refreshing URL downloads, and cache behavior.
+All installed files live in the project's gitignored `asset_cache/`. Native files come through the verified global store; direct URL downloads stay project-local. Live files stay at their original locations. The [`install` / `pull` reference](./cli/loa-pull.md) covers offline requirements, frozen lockfiles, refreshing URL downloads, and cache behavior.
 
 ## Load assets in an application
 
-The runtime maps binding names to URLs before the first load. Your code can use `loa:chair` with three.js loaders or obtain a URL directly with `assets.url('chair')`.
-
-### Vite and three.js
+`loaResolver` turns a JSON map of binding names to URLs into a resolver. It always returns a promise and takes an in-memory map (`{ resolution }`). Your application loads the map before initializing the resolver; the resolver does not fetch it.
 
 Install the runtime:
 
@@ -66,7 +67,45 @@ Install the runtime:
 npm install @landofassets/runtime
 ```
 
-Add the plugin to `vite.config.ts`:
+Use [`loa resolve`](./cli/loa-resolve.md) to export `asset-resolution.json`. It prefers locally installed files where present and remote URLs otherwise. The map associates each binding name with its resolved URL, for example:
+
+```json
+{
+  "chair": "https://example.com/models/chair.glb"
+}
+```
+
+Serve the map with your application, then fetch and parse it before creating the resolver. Your application controls the request, caching, and error handling:
+
+```ts
+import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
+import { loaResolver } from '@landofassets/runtime';
+
+const response = await fetch('/asset-resolution.json');
+if (!response.ok) throw new Error(`Could not load asset map: HTTP ${response.status}`);
+const resolution = await response.json();
+const assets = await loaResolver({ resolution });
+
+new GLTFLoader().load(assets.url('chair'), (gltf) => scene.add(gltf.scene));
+```
+
+`assets.url('chair')` returns the URL for that binding, ready to pass to any loader. Binding names do not need a `loa:` prefix. See the [`resolve` reference](./cli/loa-resolve.md) for mode overrides, serving local files, and regenerating the map.
+
+If you prefer passing an alias directly to a three.js loader, register the optional URL modifier:
+
+```ts
+import { LoadingManager } from 'three';
+
+const manager = new LoadingManager();
+manager.setURLModifier(assets.urlModifier);
+new GLTFLoader(manager).load('loa:chair', (gltf) => scene.add(gltf.scene));
+```
+
+Only this URL-modifier form requires `loa:`. The modifier receives every loader URL; the prefix distinguishes asset bindings from ordinary URLs and relative paths for textures, decoders, and other resources, which pass through unchanged. `loader.load('chair')` alone does not resolve a binding; use `loader.load(assets.url('chair'))` to avoid the prefix.
+
+### Vite
+
+The Vite plugin provides the resolution map through `virtual:loa`, so your application can import it instead of fetching a JSON file. Add the plugin to `vite.config.ts`:
 
 ```ts
 import { defineConfig } from 'vite';
@@ -77,7 +116,7 @@ export default defineConfig({
 });
 ```
 
-Use `remote` for cloud loading or `local` after pulling to serve local files and include them in a production build.
+Use `remote` for cloud loading or `local` after installation to serve local files and include them in a production build.
 
 For TypeScript, include the virtual module declaration in your application's environment declarations:
 
@@ -85,34 +124,18 @@ For TypeScript, include the virtual module declaration in your application's env
 /// <reference types="@landofassets/runtime/virtual" />
 ```
 
-Then use the generated map with a loading manager:
+Then resolve the binding name before passing its URL to a loader:
 
 ```ts
-import * as THREE from 'three';
 import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
-import { createLoaResolver } from '@landofassets/runtime';
+import { loaResolver } from '@landofassets/runtime';
 import resolution from 'virtual:loa';
 
-const assets = createLoaResolver({ resolution });
-const manager = new THREE.LoadingManager();
-manager.setURLModifier(assets.urlModifier);
-
-new GLTFLoader(manager).load('loa:chair', (gltf) => scene.add(gltf.scene));
-const chairUrl = assets.url('chair');
+const assets = await loaResolver({ resolution });
+new GLTFLoader().load(assets.url('chair'), (gltf) => scene.add(gltf.scene));
 ```
 
-### Without Vite
-
-Use [`loa resolve`](./cli/loa-resolve.md) to export `asset-resolution.json`. It prefers locally pulled files where present and remote URLs otherwise. Serve the map with your application, then load it before creating loaders:
-
-```ts
-import { loadLoaResolver } from '@landofassets/runtime';
-
-const assets = await loadLoaResolver('/asset-resolution.json');
-const chairUrl = assets.url('chair');
-```
-
-See the [`resolve` reference](./cli/loa-resolve.md) for mode overrides, serving local files, and regenerating the map.
+Both examples use the same `loaResolver({ resolution })` API; Vite supplies the map through an import instead of an application-managed JSON request.
 
 ## Review and change selections
 
@@ -140,7 +163,7 @@ Large projects can keep an `assets.json` in each level, area, or package and lis
 }
 ```
 
-One root `assets-lock.json` records the combined selections. Each manifest owns its declarations; the runtime uses one shared binding namespace. See [`add`](./cli/loa-add.md), [`remove`](./cli/loa-remove.md), and [`pull`](./cli/loa-pull.md) for workspace command behavior.
+One root `assets-lock.json` records the combined selections. Each manifest owns its declarations; the runtime uses one shared binding namespace. See [`add`](./cli/loa-add.md), [`remove`](./cli/loa-remove.md), and [`install`](./cli/loa-pull.md) for workspace command behavior.
 
 ## Maintain the shared store
 

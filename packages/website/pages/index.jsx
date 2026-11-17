@@ -80,7 +80,7 @@ export default function Home() {
           </p>
           <div className={styles.actions}>
             <Link className={styles.primary} href="https://landofassets.com/signup">
-              Sign up for free <span aria-hidden="true">→</span>
+              Create Account <span aria-hidden="true">→</span>
             </Link>
             <Link className={styles.secondary} to="/asset-manager">
               Explore the asset manager <span aria-hidden="true">→</span>

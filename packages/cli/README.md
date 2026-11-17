@@ -12,6 +12,9 @@ pnpm add -g @landofassets/cli
 yarn global add @landofassets/cli
 ```
 
+Both `loa` and `three` run the same CLI and share configuration and credentials.
+For example, `three auth login` works just like `loa auth login`.
+
 ## Quick Start
 
 ```bash
@@ -31,6 +34,8 @@ loa assets list --org my-org --project my-project
 > **Tip**: Use `loa <command> --help` or `loa <category> --help` to see available commands and their descriptions. For example, `loa auth --help` or `loa assets --help`.
 
 ## Asset manager
+
+`install` is an alias for `pull`: use `three install` or `loa install` with the same `--frozen-lockfile`, `--refresh`, and `--parallel` options.
 
 Keep consuming asset selections in Git with `assets.json` and `assets-lock.json`. LoA stores immutable native versions; Git branches and merges the selections alongside your code.
 
@@ -62,6 +67,16 @@ Use `@landofassets/runtime` to resolve aliases in an application and `@landofass
 ## Commands
 
 ### Authentication
+
+`login` and `logout` are also available as top-level shortcuts with the same options.
+Both executable names support these shortcuts:
+
+```bash
+three login            # Same as three auth login
+three logout           # Same as three auth logout
+loa login              # Same as loa auth login
+loa logout             # Same as loa auth logout
+```
 
 ```bash
 loa auth login          # Log in to your account (opens browser)

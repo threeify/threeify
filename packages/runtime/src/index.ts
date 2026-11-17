@@ -35,3 +35,12 @@ export async function loadLoaResolver(url: string) {
   if (!value || typeof value !== 'object' || Array.isArray(value)) throw new Error('Invalid LoA resolution map');
   return createLoaResolver({ resolution: value as Resolution });
 }
+
+/** Initialize a resolver from a map supplied by the application before the first loader request. */
+export async function loaResolver({
+  resolution,
+}: {
+  resolution: Resolution;
+}): Promise<ReturnType<typeof createLoaResolver>> {
+  return createLoaResolver({ resolution });
+}

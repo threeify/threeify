@@ -4,7 +4,7 @@ import { tmpdir } from 'node:os';
 import { dirname, join } from 'node:path';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import { build, createServer } from 'vite';
-import { createLoaResolver, loadLoaResolver } from './index.js';
+import { createLoaResolver, loadLoaResolver, loaResolver } from './index.js';
 import { buildResolution, liveAssetUrl, nativeHashHex, parseLockfile, relativeAssetPath } from './node.js';
 import type { Lockfile, NativeAsset } from './types.js';
 import { loa } from './vite.js';
@@ -69,8 +69,26 @@ async function materialize(root: string, value: Lockfile) {
 }
 
 describe('browser resolver', () => {
-  it('resolves aliases synchronously and leaves decoder, blob and ordinary URLs unchanged', () => {
-    const resolver = createLoaResolver({ resolution: { chair: '/chair.glb', toString: '/safe.glb' } });
+  it('always returns promises and rejects invalid in-memory maps asynchronously', async () => {
+    const fetch = vi.fn();
+    vi.stubGlobal('fetch', fetch);
+    const pending = loaResolver({ resolution: { chair: '/chair.glb' } });
+    expect(pending).toBeInstanceOf(Promise);
+    expect((await pending).url('chair')).toBe('/chair.glb');
+    expect(fetch).not.toHaveBeenCalled();
+    const invalid = loaResolver({ resolution: { chair: '' } });
+    expect(invalid).toBeInstanceOf(Promise);
+    await expect(invalid).rejects.toThrow('Invalid URL for asset chair');
+  });
+  it('retains the existing resolver entry points for compatibility', async () => {
+    const resolution = { chair: '/chair.glb' };
+    expect(createLoaResolver({ resolution }).url('chair')).toBe('/chair.glb');
+    vi.stubGlobal('fetch', vi.fn().mockResolvedValue(new Response(JSON.stringify(resolution))));
+    expect((await loadLoaResolver('/map.json')).url('chair')).toBe('/chair.glb');
+  });
+
+  it('resolves aliases and leaves decoder, blob and ordinary URLs unchanged', async () => {
+    const resolver = await loaResolver({ resolution: { chair: '/chair.glb', toString: '/safe.glb' } });
     expect(resolver.url('chair')).toBe('/chair.glb');
     expect(resolver.urlModifier('loa:chair')).toBe('/chair.glb');
     expect(resolver.url('toString')).toBe('/safe.glb');

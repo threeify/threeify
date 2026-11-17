@@ -3,9 +3,9 @@
 Resolve Git-locked asset aliases synchronously in browsers and integrate them with Vite.
 
 ```ts
-import { createLoaResolver } from '@landofassets/runtime';
+import { loaResolver } from '@landofassets/runtime';
 import resolution from 'virtual:loa';
-const assets = createLoaResolver({ resolution });
+const assets = await loaResolver({ resolution });
 manager.setURLModifier(assets.urlModifier);
 loader.load('loa:chair');
 ```
@@ -14,4 +14,13 @@ Add `loa()` from `@landofassets/runtime/vite` to Vite's plugins. The default `re
 
 Native assets are hash-verified. Direct HTTP(S) URLs and live files deliberately have no integrity pin. Both native assets and direct URL downloads are materialized in the project's `asset_cache/`. Only native assets use the global store; live files stay at their original paths.
 
-Without Vite, run `loa resolve` to generate `asset-resolution.json`, preferring pulled files in `asset_cache/` and using remote URLs for missing files. Then call `loadLoaResolver('/asset-resolution.json')` before creating loaders, or construct a resolver with your own alias-to-URL object. Non-`loa:` loader URLs pass through unchanged; unknown aliases throw.
+`loaResolver` always returns a promise and accepts `{ resolution }`. Supply the map yourself and await initialization before loading assets.
+
+Without Vite, run `loa resolve` to generate `asset-resolution.json`, preferring pulled files in `asset_cache/` and using remote URLs for missing files. Fetch and parse that map in your application, then pass it to `await loaResolver({ resolution })` before creating loaders. The resolver does not fetch the map. Non-`loa:` loader URLs pass through unchanged; unknown aliases throw.
+
+```ts
+const response = await fetch('/asset-resolution.json');
+if (!response.ok) throw new Error(`Could not load asset map: HTTP ${response.status}`);
+const resolution = await response.json();
+const assets = await loaResolver({ resolution });
+```
