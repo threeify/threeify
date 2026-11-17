@@ -12,6 +12,8 @@ import {
   nativeHashHex,
   parseLockfile,
   relativeAssetPath,
+  relativeAliasPath,
+  assetInstallPaths,
 } from './node.js';
 import type { Lockfile, NativeAsset } from './types.js';
 import { loa } from './vite.js';
@@ -66,9 +68,9 @@ async function fixture() {
 }
 async function materialize(root: string, value: Lockfile) {
   for (const importer of Object.values(value.importers)) {
-    for (const entry of Object.values(importer.assets)) {
+    for (const [alias, entry] of Object.entries(importer.assets)) {
       if (entry.kind === 'file') continue;
-      const path = join(root, relativeAssetPath(entry));
+      const path = join(root, relativeAssetPath(entry, alias));
       await mkdir(dirname(path), { recursive: true });
       await writeFile(path, entry.kind === 'loa' ? bytes : 'mutable URL bytes');
     }
@@ -121,14 +123,27 @@ describe('lock resolution', () => {
     expect(resolution.remote).toBe('https://example.com/chair@1.0.0');
     expect(resolution.logo).toBe(`/demo/${liveAssetUrl('.', 'logo')}`);
     const local = buildResolution(lock(), { mode: 'local', baseUrl: '/demo/' });
-    expect(local.chair).toContain('/demo/asset_cache/');
-    expect(local.remote).toContain('/demo/asset_cache/');
+    expect(local.chair).toContain('/demo/assets/');
+    expect(local.remote).toContain('/demo/assets/');
     expect(local.logo).toBe(resolution.logo);
   });
-  it('separates native host identity and keys URL cache entries by URL', () => {
-    const other = { ...native, host: 'https://other.example', remoteUrl: `https://other.example/files/${hex}` };
-    expect(relativeAssetPath(native)).not.toBe(relativeAssetPath(other));
-    expect(relativeAssetPath(native)).toContain(`${native.ref}/${native.version}/${hex}.glb`);
+  it('uses readable stable names and portable aliases', () => {
+    expect(relativeAssetPath(native)).toBe('assets/acme/models/chair.glb');
+    expect(relativeAliasPath('furniture/chair', native)).toBe('assets/furniture/chair.glb');
+    expect(relativeAliasPath('chair.glb', native)).toBe('assets/chair.glb');
+    for (const alias of ['../outside', '/absolute', 'CON', 'dir/nul.glb', 'chair?', 'chair.'])
+      expect(() => relativeAliasPath(alias, native)).toThrow('portable local path');
+  });
+  it('rejects conflicting canonical paths, aliases and file/directory layouts before installation', () => {
+    for (const [alias, entry] of [
+      ['chair.glb', { ...native, version: '2.0.0', specifier: `${native.ref}@2.0.0` }],
+      ['CHAIR', { ...native }],
+      ['chair.glb/child', { ...native }],
+    ] as const) {
+      const value = lock();
+      value.importers['.']!.assets[alias] = entry;
+      expect(() => assetInstallPaths(value)).toThrow('Conflicting installed asset');
+    }
   });
   it('rejects invalid hashes, mismatched native URLs, and unsafe importer paths', () => {
     expect(nativeHashHex(native.hash)).toBe(hex);
@@ -221,7 +236,7 @@ describe('Vite integration', () => {
   it('rejects corrupted native bytes during a local build', async () => {
     const { root, value } = await fixture();
     await materialize(root, value);
-    await writeFile(join(root, relativeAssetPath(native)), 'corrupted');
+    await writeFile(join(root, relativeAssetPath(native, 'chair')), 'corrupted');
     await expect(
       build({
         root,
@@ -252,9 +267,9 @@ describe('Vite integration', () => {
       expect(await (await fetch(live)).text()).toBe('logo bytes');
       await writeFile(join(root, 'brand/logo.png'), 'edited live bytes');
       expect(await (await fetch(live)).text()).toBe('edited live bytes');
-      expect(await (await fetch(`${origin}/demo/${relativeAssetPath(native)}`)).text()).toBe(bytes.toString());
-      await writeFile(join(root, relativeAssetPath(native)), 'corrupted');
-      expect((await fetch(`${origin}/demo/${relativeAssetPath(native)}`)).status).toBe(500);
+      expect(await (await fetch(`${origin}/demo/${relativeAssetPath(native, 'chair')}`)).text()).toBe(bytes.toString());
+      await writeFile(join(root, relativeAssetPath(native, 'chair')), 'corrupted');
+      expect((await fetch(`${origin}/demo/${relativeAssetPath(native, 'chair')}`)).status).toBe(500);
       expect((await fetch(`${origin}/demo/__loa/live/not-locked`)).status).toBe(404);
       expect(await readFile(join(root, 'brand/logo.png'), 'utf8')).toBe('edited live bytes');
     } finally {
@@ -268,8 +283,8 @@ describe('local-first development', () => {
     const { root, value } = await fixture();
     expect(buildResolution(value, { mode: 'auto', rootDir: root }).chair).toBe(native.remoteUrl);
     await materialize(root, value);
-    expect(buildResolution(value, { mode: 'auto', rootDir: root }).chair).toContain('/asset_cache/');
-    await rm(join(root, relativeAssetPath(native)));
+    expect(buildResolution(value, { mode: 'auto', rootDir: root }).chair).toContain('/assets/');
+    await rm(join(root, relativeAssetPath(native, 'chair')));
     expect(buildResolution(value, { mode: 'auto', rootDir: root }).chair).toBe(native.remoteUrl);
   });
   it('overrides a workspace alias without changing tracked selections, even in remote mode', async () => {
@@ -304,7 +319,9 @@ describe('local-first development', () => {
   it('bundles overrides and installed assets while keeping missing assets remote by default', async () => {
     const { root, value } = await fixture();
     await materialize(root, value);
-    await rm(join(root, relativeAssetPath(value.importers['.']!.assets.remote as import('./types.js').UrlAsset)));
+    await rm(
+      join(root, relativeAssetPath(value.importers['.']!.assets.remote as import('./types.js').UrlAsset, 'remote')),
+    );
     await writeFile(join(root, 'assets.local.json'), JSON.stringify({ overrides: { chair: 'file:./brand/logo.png' } }));
     const result = await build({
       root,
@@ -335,7 +352,7 @@ it('reloads the development map as installed files and overrides appear and disa
   try {
     await server.listen();
     expect((await virtual())!.code).toContain(native.remoteUrl);
-    const installed = join(root, relativeAssetPath(native));
+    const installed = join(root, relativeAssetPath(native, 'chair'));
     await mkdir(dirname(installed), { recursive: true });
     await writeFile(installed, bytes);
     await vi.waitFor(async () => expect((await virtual())!.code).not.toContain(native.remoteUrl));

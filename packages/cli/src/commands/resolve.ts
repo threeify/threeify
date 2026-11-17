@@ -34,7 +34,7 @@ export const command = defineCommand({
       for (const importer of Object.values(lock.importers))
         for (const [alias, entry] of Object.entries(importer.assets)) {
           if (entry.kind === 'file') continue;
-          const path = join(project.root, relativeAssetPath(entry));
+          const path = join(project.root, relativeAssetPath(entry, alias));
           try {
             if (!(await stat(path)).isFile()) continue;
           } catch (error) {

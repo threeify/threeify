@@ -117,7 +117,7 @@ async function manifestsAt(root: string, manifest: Manifest): Promise<Record<str
           cwd: root,
           onlyFiles: true,
           unique: true,
-          ignore: ['**/node_modules/**', '**/asset_cache/**'],
+          ignore: ['**/node_modules/**', '**/assets/**'],
           followSymbolicLinks: false,
         },
       )
@@ -222,7 +222,11 @@ export async function resolveProject(
     const previous = project.lock?.importers[key];
     const assets: Record<string, LockedAsset> = Object.create(null);
     for (const alias of Object.keys(manifest.assets).toSorted()) {
-      const specifier = manifest.assets[alias]!;
+      const value = manifest.assets[alias]!;
+      const specifier =
+        /^(?:[0-9]+(?:\.[0-9]+){0,2}|latest)$/.test(value) && alias.split('/').length === 3
+          ? `${alias}@${value}`
+          : value;
       const old = previous?.assets[alias];
       let matches = old?.specifier === specifier;
       if (matches && old?.kind === 'loa') {
@@ -302,7 +306,7 @@ export async function ignoreLocalAssets(root: string): Promise<void> {
   } catch (error) {
     if ((error as NodeJS.ErrnoException).code !== 'ENOENT') throw error;
   }
-  const missing = ['/asset_cache/', '/asset-resolution.json', '/assets.local.json'].filter(
+  const missing = ['/assets/', '/asset-resolution.json', '/assets.local.json'].filter(
     (entry) => !text.split(/\r?\n/).includes(entry),
   );
   if (missing.length)
@@ -359,7 +363,9 @@ export async function addAsset(
     if (key !== project.current && Object.hasOwn(manifest.assets, alias))
       throw new Error(`Duplicate workspace alias: ${alias}`);
   }
-  project.manifests[project.current]!.assets[alias] = specifier;
+  project.manifests[project.current]!.assets[alias] = specifier.startsWith(`${alias}@`)
+    ? specifier.slice(alias.length + 1)
+    : specifier;
   const lock = await resolveProject(project, host, { api });
   await saveProject(project, lock, [project.current]);
   await ignoreLocalAssets(project.root);

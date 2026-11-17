@@ -1,12 +1,12 @@
 import { createHash, randomUUID } from 'node:crypto';
 import { createWriteStream } from 'node:fs';
-import { chmod, copyFile, mkdir, readFile, readdir, rename, rm, stat } from 'node:fs/promises';
+import { chmod, copyFile, mkdir, readFile, readdir, rename, rm, stat, lstat, symlink } from 'node:fs/promises';
 import { constants } from 'node:fs';
 import { homedir, platform } from 'node:os';
-import { dirname, join, resolve } from 'node:path';
+import { dirname, join, resolve, relative } from 'node:path';
 import { Readable, Transform } from 'node:stream';
 import { pipeline } from 'node:stream/promises';
-import { nativeHashHex, relativeAssetPath, type LockedAsset } from '@landofassets/runtime/node';
+import { nativeHashHex, relativeAssetPath, relativeAliasPath, type LockedAsset } from '@landofassets/runtime/node';
 import { hashFileSha256 } from '../hash.ts';
 
 export function storePath(env: NodeJS.ProcessEnv = process.env): string {
@@ -98,6 +98,54 @@ export async function materialize(source: string, destination: string): Promise<
   }
 }
 
+/** Never traverse a directory symlink when writing generated project files. */
+export async function prepareAssetDirectories(root: string, paths: Iterable<string>): Promise<void> {
+  for (const path of paths) {
+    let current = root;
+    for (const part of relative(root, dirname(join(root, path)))
+      .split(/[\\/]/)
+      .filter(Boolean)) {
+      current = join(current, part);
+      try {
+        await mkdir(current);
+      } catch (error) {
+        if ((error as NodeJS.ErrnoException).code !== 'EEXIST') throw error;
+      }
+      const info = await lstat(current);
+      if (!info.isDirectory() || info.isSymbolicLink())
+        throw new Error(`Asset directory must be a real directory: ${current}`);
+    }
+  }
+}
+
+/** Aliases point within the project, never into the global store. */
+export async function installAlias(
+  root: string,
+  alias: string,
+  entry: LockedAsset,
+  sourcePath?: string,
+): Promise<void> {
+  if (entry.kind === 'file') return;
+  const source = join(root, sourcePath ?? relativeAssetPath(entry));
+  const destination = join(root, relativeAliasPath(alias, entry));
+  if (source === destination) return;
+  await prepareAssetDirectories(root, [relativeAliasPath(alias, entry)]);
+  const temporary = `${destination}.${randomUUID()}.tmp`;
+  try {
+    try {
+      await symlink(relative(dirname(destination), source), temporary, 'file');
+    } catch (error) {
+      if (!['EPERM', 'EACCES', 'ENOTSUP', 'EOPNOTSUPP', 'ENOSYS'].includes((error as NodeJS.ErrnoException).code ?? ''))
+        throw error;
+      await materialize(source, destination);
+      return;
+    }
+    await replaceFile(temporary, destination);
+  } finally {
+    await rm(temporary, { force: true });
+  }
+}
+
 const pendingContent = new Map<string, Promise<void>>();
 
 export async function pullAsset(
@@ -106,9 +154,12 @@ export async function pullAsset(
   store: string,
   refresh = false,
   onBytes?: (count: number) => void,
+  installedPath?: string,
 ): Promise<void> {
   if (entry.kind === 'file') return;
-  const destination = join(root, relativeAssetPath(entry));
+  const path = installedPath ?? relativeAssetPath(entry);
+  await prepareAssetDirectories(root, [path]);
+  const destination = join(root, path);
   if (entry.kind === 'url') {
     if (refresh || !(await exists(destination))) await download(entry.url, destination, undefined, onBytes);
     return;

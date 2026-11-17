@@ -10,7 +10,7 @@ Build with a shared asset library without filling your Git repository with large
 
 Pin an immutable version so a new upload cannot unexpectedly change your scene. Review asset updates alongside the code that uses them, try a different chair or lighting rig on a feature branch, and return to the previous selection when needed. Teammates and CI can install the same verified native assets, with a shared cache that avoids downloading identical bytes for every project.
 
-Start loading from the cloud without installing files first, install assets for offline work, or bundle them into a self-contained deployment. Mix published LoA assets with direct URLs and live local files as you develop, then publish the assets you want to share and pin. Your code keeps the same asset names as the project grows.
+Install assets locally and load them through ordinary URLs, without an adapter or runtime package. You can also load from the cloud or use the optional runtime integration to switch between local and remote sources. Mix published LoA assets with direct URLs and live local files as you develop.
 
 ## Select assets with your code
 
@@ -32,7 +32,19 @@ The CLI writes `assets.json` and `assets-lock.json`. Commit both with your code.
 }
 ```
 
-Keys name bindings used by your code. Values contain the full source, even if you use the canonical `org/project/asset` name as the key.
+Keys determine the installed paths under `assets/`, with the source extension appended. Canonical keys support a version selector as the value; short aliases specify the full source. Both forms can coexist and select different versions:
+
+```json
+{
+  "name": "showroom",
+  "assets": {
+    "acme/furniture/chair": "0.5.6",
+    "chair": "acme/furniture/chair@0.6.0"
+  }
+}
+```
+
+These selections install as `/assets/acme/furniture/chair.glb` and `/assets/chair.glb`. Updating the manifest and running `loa install` replaces the selected bytes at the same URLs. The lockfile always records full references, exact versions, and content hashes.
 
 ## Choose a source
 
@@ -44,22 +56,60 @@ Keys name bindings used by your code. Values contain the full source, even if yo
 
 Only native LoA versions guarantee pinned bytes. Publish an asset when you need repeatable consumption; use URLs and local files for inputs that may change. See [`loa add`](./cli/loa-add.md) for source syntax, aliases, and version selection.
 
-## Work from the cloud or locally
+## Integrate using local URLs
 
-You can load native assets remotely without downloading them first. To work locally, [install the selected assets](./cli/loa-pull.md):
+Run the installer from your project root:
 
 ```sh
-# pull and install are aliases
 loa install
-# Or use the three executable alias:
-three install
+# pull and install are aliases; three install works too
 ```
 
-All installed files live in the project's gitignored `asset_cache/`. Native files come through the verified global store; direct URL downloads stay project-local. Live files stay at their original locations. The [`install` / `pull` reference](./cli/loa-pull.md) covers offline requirements, frozen lockfiles, refreshing URL downloads, and cache behavior.
+Every installed asset uses its manifest key: `assets/<key><extension>`. There are only two places for native asset bytes: the shared global cache and the project's `assets/` directory. There is no project-local versioned store.
 
-## Load assets in an application
+For two keys selecting the same native version:
 
-`loaResolver` turns a JSON map of binding names to URLs into a resolver. It always returns a promise and takes an in-memory map (`{ resolution }`). Your application loads the map before initializing the resolver; the resolver does not fetch it.
+```json
+{
+  "name": "showroom",
+  "assets": {
+    "acme/furniture/chair": "2.3.0",
+    "chair": "acme/furniture/chair@2.3.0"
+  }
+}
+```
+
+The generated layout is:
+
+```text
+assets/
+  acme/furniture/chair.glb
+  chair.glb -> acme/furniture/chair.glb
+```
+
+The canonical binding is preferred as the real local file. Other keys selecting that same source use relative symlinks to it. If symlinks are unavailable, the installer creates independent copies instead. An alias selecting a different version gets its own file cloned or copied from the global cache. No alias points into the global cache. If no canonical key is declared, one of the declared alias paths holds the local file; the installer does not create an undeclared canonical path.
+
+Use `loa add acme/furniture/chair@0.6.0 --as chair` to select another version under a separate key. Nested keys create subdirectories, and a key already ending in the source extension does not receive it twice. Conflicting paths, including case collisions and file/directory collisions, fail before downloads. Versions and hashes stay in `assets-lock.json`, keeping application URLs stable across updates.
+
+Serve the project root with your existing static server and use either URL directly:
+
+```ts
+import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
+
+new GLTFLoader().load('/assets/chair.glb', (gltf) => scene.add(gltf.scene));
+// Or use the full canonical name:
+new GLTFLoader().load('/assets/acme/furniture/chair.glb', (gltf) => scene.add(gltf.scene));
+```
+
+No runtime package, resolution map, URL modifier, or plugin is required. Root-relative `/assets/` URLs assume the assets are served at the origin root; prepend your deployment's base path when hosting in a subdirectory. Configure your server to expose the installed `assets/` directory, or copy it into the static output when building. If deployment tooling does not follow symlinks, dereference them while copying (for example, `cp -RL assets public/`). CI can run `loa install --frozen-lockfile` before packaging the site.
+
+Commit `assets.json` and `assets-lock.json`. The CLI adds `/assets/` to `.gitignore`; generated files stay out of Git. Native files come through the verified global store, using copy-on-write clones or independent copies so project edits cannot mutate the store. Aliases never point into the global store.
+
+Direct HTTP(S) sources also install at `assets/<key><extension>`, without integrity checks or shared caching. Live `file:` sources stay in their original locations and do not get installed aliases; serve those files yourself or use the optional runtime integration. Local overrides also apply only to runtime resolution, not static `/assets/` URLs. The [`install` / `pull` reference](./cli/loa-pull.md) covers refreshing URL downloads and frozen lockfiles.
+
+## Integrate using a resolution map
+
+Use the optional runtime when you want cloud loading, automatic local/remote selection, or live local overrides. `loaResolver` turns a JSON map of binding names to URLs into a resolver. It always returns a promise and takes an in-memory map (`{ resolution }`). Your application loads the map before initializing the resolver; the resolver does not fetch it.
 
 Install the runtime:
 

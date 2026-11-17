@@ -45,20 +45,25 @@ describe('project asset selections', () => {
     expect(project.lock!.importers['.']!.assets.chair).toMatchObject({ kind: 'loa', hash, version: '2.0.0', host });
     expect(api.resolve).toHaveBeenCalledTimes(1);
   });
-  it('keeps the full source ref when the canonical name is the alias', async () => {
+  it('writes a version selector when the canonical name is the binding', async () => {
     await addAsset('acme/models/chair', undefined, root, host, api);
     expect((await loadProject(root)).manifests['.']!.assets).toEqual({
-      'acme/models/chair': 'acme/models/chair@2.0.0',
+      'acme/models/chair': '2.0.0',
     });
   });
   it.each(['2.0.0', '2', '2.3', 'latest'])(
-    'rejects bare native version shorthand %s even with a canonical key',
+    'accepts native version shorthand %s with a canonical key',
     async (value) => {
       await manifest(root, { name: 'showroom', assets: { 'acme/models/chair': value } });
-      await expect(resolveProject(await loadProject(root), host, { api })).rejects.toThrow(
-        'Expected org/project/asset',
-      );
-      expect(api.resolve).not.toHaveBeenCalled();
+      const project = await loadProject(root);
+      const lock = await resolveProject(project, host, { api });
+      expect(lock.importers['.']!.assets['acme/models/chair']).toMatchObject({
+        specifier: `acme/models/chair@${value}`,
+      });
+      project.lock = lock;
+      vi.mocked(api.resolve).mockClear();
+      // The test registry returns an exact matching version for the frozen check.
+      if (value !== '2.3') await expect(resolveProject(project, host, { frozen: true, api })).resolves.toEqual(lock);
     },
   );
   it('adds HTTP URLs without registry calls, hashes, or integrity fields', async () => {

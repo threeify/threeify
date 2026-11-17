@@ -32,7 +32,9 @@ export const command = defineCommand({
         if (argv.latest) {
           const latest = await registry.resolve(entry.host, entry.ref, 'latest');
           const specifier = `${entry.ref}@${latest.version}`;
-          project.manifests[key]!.assets[alias] = specifier;
+          const current = project.manifests[key]!.assets[alias]!;
+          project.manifests[key]!.assets[alias] =
+            alias === entry.ref && !current.includes('/') ? latest.version : specifier;
           importer.assets[alias] = { ...entry, ...latest, specifier };
           update.delete(alias);
           changed.add(key);
