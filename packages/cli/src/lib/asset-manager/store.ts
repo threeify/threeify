@@ -6,13 +6,7 @@ import { homedir, platform } from 'node:os';
 import { dirname, join, resolve, relative } from 'node:path';
 import { Readable, Transform } from 'node:stream';
 import { pipeline } from 'node:stream/promises';
-import {
-  nativeHashHex,
-  relativeAssetPath,
-  relativeAliasPath,
-  type LockedAsset,
-  type NativeAsset,
-} from '@landofassets/runtime/node';
+import { nativeHashHex, relativeAssetPath, type LockedAsset, type NativeAsset } from '@landofassets/runtime/node';
 import { hashFileSha256 } from '../hash.ts';
 
 export function storePath(env: NodeJS.ProcessEnv = process.env): string {
@@ -124,18 +118,9 @@ export async function prepareAssetDirectories(root: string, paths: Iterable<stri
   }
 }
 
-/** Aliases point within the project, never into the global store. */
-export async function installAlias(
-  root: string,
-  alias: string,
-  entry: LockedAsset,
-  sourcePath?: string,
-): Promise<void> {
-  if (entry.kind === 'file') return;
-  const source = join(root, sourcePath ?? relativeAssetPath(entry));
-  const destination = join(root, relativeAliasPath(alias, entry));
-  if (source === destination) return;
-  await prepareAssetDirectories(root, [relativeAliasPath(alias, entry)]);
+/** Each native binding links directly to its read-only global object; copies are the fallback. */
+export async function installCachedAsset(source: string, destination: string): Promise<void> {
+  await mkdir(dirname(destination), { recursive: true });
   const temporary = `${destination}.${randomUUID()}.tmp`;
   try {
     try {
@@ -167,10 +152,11 @@ export async function pullAsset(
   await prepareAssetDirectories(root, [path]);
   const destination = join(root, path);
   if (entry.kind === 'url') {
-    if (refresh || !(await exists(destination))) await download(entry.url, destination, undefined, onBytes);
+    if (refresh || !(await exists(destination)) || (await lstat(destination)).isSymbolicLink())
+      await download(entry.url, destination, undefined, onBytes);
     return;
   }
-  await materialize(await cacheNativeAsset(entry, store, onBytes), destination);
+  await installCachedAsset(await cacheNativeAsset(entry, store, onBytes), destination);
 }
 
 /** Download into the existing global cache as soon as metadata is available. */
@@ -194,6 +180,7 @@ export async function cacheNativeAsset(
   } finally {
     if (pendingContent.get(cached) === pending) pendingContent.delete(cached);
   }
+  await chmod(cached, 0o444);
   return cached;
 }
 

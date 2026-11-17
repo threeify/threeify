@@ -1,6 +1,18 @@
 import { execFile } from 'node:child_process';
 import { createHash } from 'node:crypto';
-import { chmod, lstat, readlink, symlink, mkdir, mkdtemp, readFile, readdir, rm, writeFile } from 'node:fs/promises';
+import {
+  chmod,
+  lstat,
+  realpath,
+  readlink,
+  symlink,
+  mkdir,
+  mkdtemp,
+  readFile,
+  readdir,
+  rm,
+  writeFile,
+} from 'node:fs/promises';
 import { createServer, type Server } from 'node:http';
 import type { AddressInfo } from 'node:net';
 import { tmpdir } from 'node:os';
@@ -34,6 +46,12 @@ let assetMissing: boolean;
 let rejectPublication: boolean;
 let uploadBytes: Buffer | undefined;
 let publication: Record<string, unknown> | undefined;
+
+async function expectCacheLink(path: string, hex = oid) {
+  expect((await lstat(path)).isSymbolicLink()).toBe(true);
+  expect((await readlink(path)).replaceAll('\\', '/')).toMatch(new RegExp(`/sha256/${hex.slice(0, 2)}/${hex}$`));
+  expect(await realpath(path)).toBe(await realpath(contentPath(store, hex)));
+}
 
 function assetResponse(version: string) {
   return {
@@ -459,13 +477,14 @@ it('downloads one shared native hash for concurrent versions', async () => {
   expect(requests.filter((request) => request.path === `/files/${oid}`)).toHaveLength(1);
 });
 
-it('installs relative alias symlinks, repairs them, using project-relative targets', async () => {
+it('links canonical and short bindings directly to the global cache and repairs local copies', async () => {
   await run(['add', 'acme/models/chair@1.0.0']);
   await run(['add', 'acme/models/chair@1.0.0', '--as', 'furniture/chair']);
   await run(['install']);
   const alias = join(root, 'assets/furniture/chair.glb');
   expect((await lstat(alias)).isSymbolicLink()).toBe(true);
-  expect(await readlink(alias)).toBe('../acme/models/chair.glb');
+  await expectCacheLink(alias);
+  await expectCacheLink(join(root, 'assets/acme/models/chair.glb'));
   expect(await readFile(alias)).toEqual(nativeBytes);
   await rm(alias);
   await writeFile(alias, 'old fallback copy');
@@ -497,9 +516,9 @@ it('keeps canonical and aliased versions independent at stable manifest-key path
   await run(['install']);
   const canonical = join(root, 'assets/acme/models/chair.glb');
   const alias = join(root, 'assets/chair.glb');
-  expect((await lstat(canonical)).isSymbolicLink()).toBe(false);
-  expect((await lstat(alias)).isSymbolicLink()).toBe(false);
-  expect(await readlink(join(root, 'assets/same.glb'))).toBe('acme/models/chair.glb');
+  expect((await lstat(canonical)).isSymbolicLink()).toBe(true);
+  expect((await lstat(alias)).isSymbolicLink()).toBe(true);
+  await expectCacheLink(join(root, 'assets/same.glb'));
   const lock = (await loadProject(root)).lock!;
   expect(lock.importers['.']!.assets.chair).toMatchObject({ version: '2.0.0' });
   expect(lock.importers['.']!.assets['acme/models/chair']).toMatchObject({ version: '1.0.0' });
@@ -519,7 +538,7 @@ it('keeps canonical and aliased versions independent at stable manifest-key path
   await run(['install', '--frozen-lockfile']);
   expect(await readFile(canonical)).toEqual(nativeBytes);
   expect(await readFile(alias)).toEqual(alternateBytes);
-  // Moving the canonical selection to version two must detach the old same-version alias first.
+  // Changing the canonical selection must leave the other alias on its original cache object.
   const manifest = JSON.parse(await readFile(join(root, 'assets.json'), 'utf8'));
   manifest.assets['acme/models/chair'] = '2.0.0';
   lock.importers['.']!.assets['acme/models/chair'] = alternate;
@@ -529,7 +548,7 @@ it('keeps canonical and aliased versions independent at stable manifest-key path
   expect(await readFile(canonical)).toEqual(alternateBytes);
   expect(await readFile(alias)).toEqual(alternateBytes);
   expect(await readFile(join(root, 'assets/same.glb'))).toEqual(nativeBytes);
-  expect(await readlink(alias)).toBe('acme/models/chair.glb');
+  await expectCacheLink(alias, alternateHex);
   expect(await readdir(join(root, 'assets'))).toEqual(['acme', 'chair.glb', 'same.glb']);
   await run(['resolve', '--mode', 'local']);
   expect(JSON.parse(await readFile(join(root, 'asset-resolution.json'), 'utf8'))).toEqual({
@@ -537,7 +556,7 @@ it('keeps canonical and aliased versions independent at stable manifest-key path
     chair: '/assets/chair.glb',
     same: '/assets/same.glb',
   });
-});
+}, 15000);
 
 it('refreshes a stable URL binding when its source URL changes', async () => {
   await run(['add', `${host}/external.glb`, '--as', 'external']);
@@ -586,6 +605,121 @@ it('starts a queued download while another metadata lookup is still pending', as
   expect(releaseMetadata).toBeUndefined();
   expect(await readFile(join(root, 'assets/a.glb'))).toEqual(nativeBytes);
   expect(await readFile(join(root, 'assets/b.glb'))).toEqual(nativeBytes);
-  expect(await readlink(join(root, 'assets/c.glb'))).toBe('a.glb');
+  await expectCacheLink(join(root, 'assets/c.glb'));
   expect(requests.filter((request) => request.path.startsWith('/files/'))).toHaveLength(1);
+});
+
+it.each(['install', 'pull'])(
+  '%s prunes obsolete trees, hidden files and symlinks without following them',
+  async (command) => {
+    await writeFile(
+      join(root, 'assets.json'),
+      JSON.stringify({ name: 'prune', assets: { 'old/chair': 'acme/models/chair@1.0.0' } }),
+    );
+    await run([command]);
+    await mkdir(join(root, 'outside'));
+    await writeFile(join(root, 'outside/keep.txt'), 'outside');
+    await writeFile(join(root, 'assets/.orphan'), 'obsolete');
+    await symlink(join(root, 'outside'), join(root, 'assets/obsolete-link'), 'dir');
+    await symlink('missing.glb', join(root, 'assets/broken.glb'));
+    await writeFile(
+      join(root, 'assets.json'),
+      JSON.stringify({ name: 'prune', assets: { 'new/chair': 'acme/models/chair@1.0.0' } }),
+    );
+    await run([command]);
+    expect(await readdir(join(root, 'assets'))).toEqual(['new']);
+    expect(await readFile(join(root, 'assets/new/chair.glb'))).toEqual(nativeBytes);
+    expect(await readFile(join(root, 'outside/keep.txt'), 'utf8')).toBe('outside');
+    expect((await verifyStore(store)).checked).toBe(1);
+  },
+  15000,
+);
+
+it('remove prunes one native binding and keeps other direct cache links usable', async () => {
+  await writeFile(
+    join(root, 'assets.json'),
+    JSON.stringify({
+      name: 'aliases',
+      assets: {
+        'acme/models/chair': '1.0.0',
+        'furniture/chair': 'acme/models/chair@1.0.0',
+        seat: 'acme/models/chair@1.0.0',
+      },
+    }),
+  );
+  await run(['install']);
+  await run(['remove', 'acme/models/chair']);
+  expect(await readdir(join(root, 'assets'))).toEqual(['furniture', 'seat.glb']);
+  expect(await readFile(join(root, 'assets/furniture/chair.glb'))).toEqual(nativeBytes);
+  expect(await readFile(join(root, 'assets/seat.glb'))).toEqual(nativeBytes);
+  await expectCacheLink(join(root, 'assets/seat.glb'));
+  expect((await verifyStore(store)).checked).toBe(1);
+});
+
+it('remove preserves independent URL alias copies without redownloading and removes the last receipt', async () => {
+  await writeFile(
+    join(root, 'assets.json'),
+    JSON.stringify({ name: 'urls', assets: { a: `${host}/external.glb`, b: `${host}/external.glb` } }),
+  );
+  await run(['install']);
+  urlBytes = 'changed remote bytes';
+  requests = [];
+  await run(['remove', 'a']);
+  expect(await readdir(join(root, 'assets'))).toEqual(['.loa-urls.json', 'b.glb']);
+  expect(await readFile(join(root, 'assets/b.glb'), 'utf8')).toBe('external version one');
+  expect(requests).toEqual([]);
+  await run(['remove', 'b']);
+  expect(await readdir(join(root, 'assets'))).toEqual([]);
+}, 15000);
+
+it('remove retains bindings owned by the other workspace manifests', async () => {
+  await mkdir(join(root, 'levels/lobby'), { recursive: true });
+  await writeFile(
+    join(root, 'assets.json'),
+    JSON.stringify({ name: 'world', workspaces: ['levels/*'], assets: { a: 'acme/models/chair@1.0.0' } }),
+  );
+  await writeFile(
+    join(root, 'levels/lobby/assets.json'),
+    JSON.stringify({ name: 'lobby', assets: { b: 'acme/models/chair@1.0.0' } }),
+  );
+  await run(['install']);
+  await run(['remove', 'a']);
+  expect(await readdir(join(root, 'assets'))).toEqual(['b.glb']);
+  expect(await readFile(join(root, 'assets/b.glb'))).toEqual(nativeBytes);
+  expect((await loadProject(root)).lock!.importers['levels/lobby']!.assets.b).toBeDefined();
+});
+
+it('reconciles file-to-directory and directory-to-file changes', async () => {
+  const write = (assets: Record<string, string>) =>
+    writeFile(join(root, 'assets.json'), JSON.stringify({ name: 'shape', assets }));
+  await write({ shape: 'acme/models/chair@1.0.0' });
+  await run(['install']);
+  await write({ 'shape.glb/child': 'acme/models/chair@1.0.0' });
+  await run(['install']);
+  expect(await readFile(join(root, 'assets/shape.glb/child.glb'))).toEqual(nativeBytes);
+  await write({ shape: 'acme/models/chair@1.0.0' });
+  await run(['install']);
+  expect(await readdir(join(root, 'assets'))).toEqual(['shape.glb']);
+  expect(await readFile(join(root, 'assets/shape.glb'))).toEqual(nativeBytes);
+}, 15000);
+
+it('preserves tracked live files, local override files and a protected global store', async () => {
+  await mkdir(join(root, 'assets/drafts'), { recursive: true });
+  await writeFile(join(root, 'assets/live.glb'), 'live bytes');
+  await writeFile(join(root, 'assets/drafts/override.glb'), 'draft bytes');
+  await writeFile(join(root, 'assets/drafts/stale.glb'), 'stale');
+  await writeFile(
+    join(root, 'assets.local.json'),
+    JSON.stringify({ overrides: { chair: 'file:./assets/drafts/override.glb' } }),
+  );
+  await writeFile(
+    join(root, 'assets.json'),
+    JSON.stringify({ name: 'live', assets: { chair: 'acme/models/chair@1.0.0', live: 'file:./assets/live.glb' } }),
+  );
+  const internalStore = join(root, 'assets/global-store');
+  await run(['install'], { LOA_STORE_DIR: internalStore });
+  expect(await readdir(join(root, 'assets/drafts'))).toEqual(['override.glb']);
+  expect(await readFile(join(root, 'assets/live.glb'), 'utf8')).toBe('live bytes');
+  expect(await readFile(join(root, 'assets/drafts/override.glb'), 'utf8')).toBe('draft bytes');
+  expect((await verifyStore(internalStore)).checked).toBe(1);
 });

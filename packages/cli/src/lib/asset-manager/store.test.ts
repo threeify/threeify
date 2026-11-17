@@ -15,7 +15,7 @@ import {
 import { tmpdir } from 'node:os';
 import { dirname, join } from 'node:path';
 import { afterEach, describe, expect, it, vi } from 'vitest';
-import { installAlias, materialize, storePath } from './store.ts';
+import { installCachedAsset, materialize, storePath } from './store.ts';
 
 vi.mock('node:os', async (original) => ({ ...(await original<typeof import('node:os')>()), platform: () => 'win32' }));
 vi.mock('node:fs/promises', async (original) => {
@@ -86,22 +86,17 @@ it('isolates edits and deletion from the store when cloning is unavailable', asy
 it('falls back to an independent alias copy when symlinks are unavailable and refreshes that copy', async () => {
   const root = await mkdtemp(join(tmpdir(), 'loa-alias-copy-'));
   roots.push(root);
-  const entry = {
-    kind: 'url' as const,
-    specifier: 'https://example.com/chair',
-    url: 'https://example.com/chair',
-    extension: '.glb',
-  };
-  const { relativeAssetPath } = await import('@landofassets/runtime/node');
-  const source = join(root, relativeAssetPath(entry));
+  const source = join(root, 'global-store/object');
   await mkdir(dirname(source), { recursive: true });
   await writeFile(source, 'first');
   vi.mocked(symlink).mockRejectedValue(Object.assign(new Error('Privilege unavailable'), { code: 'EPERM' }));
-  await installAlias(root, 'chair', entry);
+  await installCachedAsset(source, join(root, 'assets/chair.glb'));
   const alias = join(root, 'assets/chair.glb');
   expect((await lstat(alias)).isSymbolicLink()).toBe(false);
   expect(await readFile(alias, 'utf8')).toBe('first');
-  await writeFile(source, 'second');
-  await installAlias(root, 'chair', entry);
+  const next = join(root, 'global-store/new-object');
+  await writeFile(next, 'second');
+  await installCachedAsset(next, join(root, 'assets/chair.glb'));
+  expect(await readFile(source, 'utf8')).toBe('first');
   expect(await readFile(alias, 'utf8')).toBe('second');
 });
