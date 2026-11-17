@@ -62,7 +62,7 @@ Native refs are hash-verified and downloaded into a global store, then materiali
 
 Ignore `asset_cache/` and generated `asset-resolution.json`; commit the manifest and lockfile. Only native assets have reproducible verified bytes. External URLs and live files remain mutable even with `--frozen-lockfile`.
 
-Use `@landofassets/runtime` to resolve aliases in an application and `@landofassets/runtime/vite` to serve or bundle local assets. The [asset manager overview](../website/docs/asset-manager.md) covers runtime integration, workspaces, deployment modes, and the source model.
+Use `@landofassets/runtime` to resolve aliases in an application and `@landofassets/runtime/vite` to serve or bundle local assets. The [asset manager overview](../docs/docs/asset-manager.md) covers runtime integration, workspaces, deployment modes, and the source model.
 
 ## Commands
 

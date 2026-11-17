@@ -36,7 +36,7 @@ jobs:
       - run: pnpm docs:build
       - uses: actions/upload-pages-artifact@v4
         with:
-          path: packages/website/build
+          path: packages/docs/build
   deploy:
     needs: build
     runs-on: ubuntu-latest
