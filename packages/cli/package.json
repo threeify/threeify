@@ -21,7 +21,8 @@
     "directory": "packages/cli"
   },
   "bin": {
-    "loa": "./dist/bin/loa.js"
+    "loa": "./dist/bin/loa.js",
+    "three": "./dist/bin/loa.js"
   },
   "type": "module",
   "main": "dist/index.js",
