@@ -24,8 +24,8 @@ export type LoaPluginOptions = {
 };
 const virtualId = '\0virtual:loa';
 
-function localPath(root: string, directory: string, entry: LockedAsset): string {
-  return entry.kind === 'file' ? resolve(root, directory, entry.path) : resolve(root, relativeAssetPath(entry));
+function localPath(root: string, directory: string, entry: LockedAsset, alias: string): string {
+  return entry.kind === 'file' ? resolve(root, directory, entry.path) : resolve(root, relativeAssetPath(entry, alias));
 }
 async function readAsset(path: string, entry: LockedAsset): Promise<Buffer> {
   let bytes: Buffer;
@@ -92,11 +92,11 @@ export function loa(options: LoaPluginOptions = {}): Plugin {
       const entries: string[] = [];
       for (const [directory, importer] of Object.entries(lock.importers)) {
         for (const [alias, entry] of Object.entries(importer.assets)) {
-          if (!isLocalAsset(root, entry, mode)) {
+          if (!isLocalAsset(root, entry, mode, alias)) {
             entries.push(`[${JSON.stringify(alias)}]:${JSON.stringify(resolution[alias])}`);
             continue;
           }
-          const path = localPath(root, directory, entry);
+          const path = localPath(root, directory, entry, alias);
           this.addWatchFile(path);
           const bytes = await readAsset(path, entry);
           const extension = entry.kind === 'file' ? extname(path) : entry.extension;
@@ -117,13 +117,13 @@ export function loa(options: LoaPluginOptions = {}): Plugin {
         for (const [directory, importer] of Object.entries(lock.importers)) {
           for (const [alias, entry] of Object.entries(importer.assets)) {
             if (entry.kind !== 'file' && mode === 'remote') continue;
-            const route = entry.kind === 'file' ? liveAssetUrl(directory, alias) : relativeAssetPath(entry);
-            routes.set(`${prefix}/${route}`, { path: localPath(root, directory, entry), entry });
+            const route = entry.kind === 'file' ? liveAssetUrl(directory, alias) : relativeAssetPath(entry, alias);
+            routes.set(`${prefix}/${route}`, { path: localPath(root, directory, entry, alias), entry });
           }
         }
         server.watcher.add([
           resolve(root, 'assets.local.json'),
-          resolve(root, 'asset_cache'),
+          resolve(root, 'assets'),
           lockPath,
           ...[...routes.values()].map((item) => item.path),
         ]);
@@ -157,7 +157,7 @@ export function loa(options: LoaPluginOptions = {}): Plugin {
         const route = routes.get(pathname);
         if (!route) {
           const prefix = new URL(base, 'http://loa.local/').pathname.replace(/\/$/, '');
-          if (['/__loa/live/', '/asset_cache/'].some((part) => pathname.startsWith(`${prefix}${part}`))) {
+          if (['/__loa/live/', '/assets/'].some((part) => pathname.startsWith(`${prefix}${part}`))) {
             response.writeHead(404);
             response.end();
             return;

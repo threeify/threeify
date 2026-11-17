@@ -47,7 +47,9 @@ loa pull
 loa resolve
 ```
 
-Native refs are hash-verified and downloaded into a global store, then materialized in `asset_cache/` using clone, hardlink, or copy. Direct HTTP(S) URLs skip integrity checks and global caching; `pull` downloads them into project-local `asset_cache/`, and `pull --refresh` fetches them again. `file:` entries load live from their manifest-relative location and are never copied, hashed, or changed by `pull`. Adding any source does not download its bytes.
+For a static site, run `loa install` and load `/assets/chair.glb` directly. Assets install at `assets/<manifest-key><extension>`; canonical keys can use bare version values, while short aliases specify full refs. Keys selecting the same native version use relative symlinks, or copies when symlinks are unavailable. Different versions can coexist under different keys. No runtime adapter is required. Serve `assets/` at the same URL path, or copy it into your build output, dereferencing symlinks if needed. Commit the manifests and lockfile; CI can use `loa install --frozen-lockfile`.
+
+Native refs are hash-verified and downloaded into a global store, then materialized in `assets/` using copy-on-write clones or independent copies. Direct HTTP(S) URLs skip integrity checks and global caching; `pull` downloads them into project-local `assets/`, and `pull --refresh` fetches them again. `file:` entries load live from their manifest-relative location and are never copied, hashed, or changed by `pull`. Adding any source does not download its bytes.
 
 | Command                                                           | Purpose                                                                   |
 | ----------------------------------------------------------------- | ------------------------------------------------------------------------- |
@@ -60,7 +62,7 @@ Native refs are hash-verified and downloaded into a global store, then materiali
 | `loa resolve [--mode auto\|remote\|local]`                        | Write `asset-resolution.json`, preferring locally pulled files by default |
 | `loa store <command>`                                             | Inspect and maintain the native global store                              |
 
-Ignore `asset_cache/` and generated `asset-resolution.json`; commit the manifest and lockfile. Only native assets have reproducible verified bytes. External URLs and live files remain mutable even with `--frozen-lockfile`.
+Ignore `assets/` and generated `asset-resolution.json`; commit the manifest and lockfile. Only native assets have reproducible verified bytes. External URLs and live files remain mutable even with `--frozen-lockfile`.
 
 Use `@landofassets/runtime` to resolve aliases in an application and `@landofassets/runtime/vite` to serve or bundle local assets. The [asset manager overview](../docs/docs/asset-manager.md) covers runtime integration, workspaces, deployment modes, and the source model.
 

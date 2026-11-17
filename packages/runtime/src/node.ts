@@ -108,17 +108,69 @@ export function parseLockfile(value: unknown): Lockfile {
 export function urlHash(value: string): string {
   return createHash('sha256').update(value).digest('hex');
 }
-/** Relative project path. Direct URL cache keys identify URLs, never content integrity. */
-export function relativeAssetPath(entry: Exclude<LockedAsset, { kind: 'file' }>): string {
-  if (entry.kind === 'url') return posix.join('asset_cache', `${urlHash(entry.url)}${extension(entry.extension)}`);
+/** Relative installed path. Native names are stable; URL keys identify URLs, not integrity. */
+export function relativeAssetPath(entry: Exclude<LockedAsset, { kind: 'file' }>, alias?: string): string {
+  if (alias !== undefined) return relativeAliasPath(alias, entry);
+  if (entry.kind === 'url') return posix.join('assets', '_urls', `${urlHash(entry.url)}${extension(entry.extension)}`);
   assertNativeAsset(entry);
-  return posix.join(
-    'asset_cache',
-    urlHash(entry.host).slice(0, 16),
-    entry.ref,
-    entry.version,
-    `${nativeHashHex(entry.hash)}${extension(entry.extension)}`,
+  return posix.join('assets', `${entry.ref}${extension(entry.extension)}`);
+}
+
+/** Alias paths are portable files under assets/, with the source extension appended once. */
+export function relativeAliasPath(alias: string, entry: Exclude<LockedAsset, { kind: 'file' }>): string {
+  if (
+    alias
+      .split('/')
+      .some(
+        (part) =>
+          !/^[A-Za-z0-9_-][A-Za-z0-9._-]*$/.test(part) ||
+          /[.]$/.test(part) ||
+          /^(con|prn|aux|nul|com[0-9]|lpt[0-9])(?:[.]|$)/i.test(part),
+      )
+  )
+    throw new Error(`Asset alias cannot be used as a portable local path: ${alias}`);
+  const suffix = extension(entry.extension);
+  return posix.join('assets', alias.endsWith(suffix) ? alias : `${alias}${suffix}`);
+}
+
+/** The same selected source may have several public bindings. */
+export function assetSourceKey(entry: LockedAsset): string {
+  return JSON.stringify(
+    entry.kind === 'loa'
+      ? [entry.kind, entry.host, entry.ref, entry.version, entry.hash, entry.extension]
+      : entry.kind === 'url'
+        ? [entry.kind, entry.url, entry.extension]
+        : [entry.kind, entry.path],
   );
+}
+
+/** Check the complete layout before installing; readable paths must never silently overwrite another source. */
+export function assetInstallPaths(lock: Lockfile): Map<string, Exclude<LockedAsset, { kind: 'file' }>> {
+  const paths = new Map<string, Exclude<LockedAsset, { kind: 'file' }>>();
+  const identities = new Map<string, string>();
+  for (const importer of Object.values(lock.importers)) {
+    for (const [alias, entry] of Object.entries(importer.assets)) {
+      if (entry.kind === 'file') continue;
+      const identity = assetSourceKey(entry);
+      for (const path of [relativeAliasPath(alias, entry)]) {
+        // Reject case collisions as well, for portable checkouts on Windows and macOS.
+        const key = path.toLowerCase();
+        const previous = identities.get(key);
+        if (previous && (previous !== identity || !paths.has(path)))
+          throw new Error(`Conflicting installed asset path: ${path}`);
+        identities.set(key, identity);
+        paths.set(path, entry);
+      }
+    }
+  }
+  for (const path of paths.keys()) {
+    let parent = posix.dirname(path);
+    while (parent !== '.') {
+      if (identities.has(parent.toLowerCase())) throw new Error(`Conflicting installed asset directory: ${parent}`);
+      parent = posix.dirname(parent);
+    }
+  }
+  return paths;
 }
 /** Optional untracked local substitutions, keyed by the same aliases as application code. */
 export function applyLocalOverrides(lock: Lockfile, root: string): Lockfile {
@@ -153,11 +205,11 @@ export function applyLocalOverrides(lock: Lockfile, root: string): Lockfile {
   return result;
 }
 
-export function isLocalAsset(root: string, entry: LockedAsset, mode: ResolveMode): boolean {
+export function isLocalAsset(root: string, entry: LockedAsset, mode: ResolveMode, alias?: string): boolean {
   if (entry.kind === 'file' || mode === 'local') return true;
   if (mode === 'remote') return false;
   try {
-    return statSync(resolve(root, relativeAssetPath(entry))).isFile();
+    return statSync(resolve(root, relativeAssetPath(entry, alias))).isFile();
   } catch (error) {
     if (['ENOENT', 'ENOTDIR'].includes((error as NodeJS.ErrnoException).code ?? '')) return false;
     throw error;
@@ -181,11 +233,11 @@ export function buildResolution(
       result[alias] =
         entry.kind === 'file'
           ? `${prefix}${liveAssetUrl(directory, alias)}`
-          : !isLocalAsset(rootDir, entry, mode)
+          : !isLocalAsset(rootDir, entry, mode, alias)
             ? entry.kind === 'loa'
               ? entry.remoteUrl
               : entry.url
-            : `${prefix}${relativeAssetPath(entry)}`;
+            : `${prefix}${relativeAssetPath(entry, alias)}`;
     }
   }
   return result;

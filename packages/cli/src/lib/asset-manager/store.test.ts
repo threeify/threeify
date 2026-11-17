@@ -1,17 +1,31 @@
-import { chmod, copyFile, mkdtemp, readFile, readdir, rename, rm, stat, writeFile } from 'node:fs/promises';
+import {
+  chmod,
+  copyFile,
+  mkdir,
+  mkdtemp,
+  readFile,
+  readdir,
+  rename,
+  rm,
+  stat,
+  symlink,
+  lstat,
+  writeFile,
+} from 'node:fs/promises';
 import { tmpdir } from 'node:os';
-import { join } from 'node:path';
+import { dirname, join } from 'node:path';
 import { afterEach, describe, expect, it, vi } from 'vitest';
-import { materialize, storePath } from './store.ts';
+import { installAlias, materialize, storePath } from './store.ts';
 
 vi.mock('node:os', async (original) => ({ ...(await original<typeof import('node:os')>()), platform: () => 'win32' }));
 vi.mock('node:fs/promises', async (original) => {
   const fs = await original<typeof import('node:fs/promises')>();
-  return { ...fs, copyFile: vi.fn(fs.copyFile), rename: vi.fn(fs.rename) };
+  return { ...fs, copyFile: vi.fn(fs.copyFile), rename: vi.fn(fs.rename), symlink: vi.fn(fs.symlink) };
 });
 const roots: string[] = [];
 afterEach(async () => {
   vi.mocked(rename).mockClear();
+  vi.mocked(symlink).mockReset();
   vi.mocked(copyFile).mockClear();
   await Promise.all(roots.splice(0).map((root) => rm(root, { recursive: true, force: true })));
 });
@@ -67,4 +81,27 @@ it('isolates edits and deletion from the store when cloning is unavailable', asy
   expect((await stat(source)).mode & 0o222).toBe(0);
   await rm(destination);
   expect(await readFile(source, 'utf8')).toBe('published bytes');
+});
+
+it('falls back to an independent alias copy when symlinks are unavailable and refreshes that copy', async () => {
+  const root = await mkdtemp(join(tmpdir(), 'loa-alias-copy-'));
+  roots.push(root);
+  const entry = {
+    kind: 'url' as const,
+    specifier: 'https://example.com/chair',
+    url: 'https://example.com/chair',
+    extension: '.glb',
+  };
+  const { relativeAssetPath } = await import('@landofassets/runtime/node');
+  const source = join(root, relativeAssetPath(entry));
+  await mkdir(dirname(source), { recursive: true });
+  await writeFile(source, 'first');
+  vi.mocked(symlink).mockRejectedValue(Object.assign(new Error('Privilege unavailable'), { code: 'EPERM' }));
+  await installAlias(root, 'chair', entry);
+  const alias = join(root, 'assets/chair.glb');
+  expect((await lstat(alias)).isSymbolicLink()).toBe(false);
+  expect(await readFile(alias, 'utf8')).toBe('first');
+  await writeFile(source, 'second');
+  await installAlias(root, 'chair', entry);
+  expect(await readFile(alias, 'utf8')).toBe('second');
 });
