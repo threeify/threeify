@@ -8,6 +8,7 @@ import { getCliDeps } from '../lib/deps.ts';
 
 export const command = defineCommand({
   command: 'pull',
+  aliases: ['install'],
   describe: 'Pull locked native assets and direct URLs locally; leave file: references live',
   builder: (yargs) =>
     yargs.options({

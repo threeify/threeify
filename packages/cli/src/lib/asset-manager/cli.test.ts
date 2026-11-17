@@ -174,43 +174,51 @@ describe('asset manager executable', { timeout: 20_000 }, () => {
     expect(uploadBytes?.toString()).toBe('not a self-contained glb');
     expect(publication?.version).toBe('2.0.0');
   });
-  it('adds, pulls and resolves a native asset anonymously, then reuses verified bytes offline', async () => {
-    await run(['add', 'acme/models/chair', '--as', 'chair']);
-    expect(requests.map((r) => r.path)).toEqual(['/assets/acme/models/chair']);
-    expect(await readdir(root)).not.toContain('store');
-    await run(['pull', '--frozen-lockfile']);
-    const project = await loadProject(root);
-    const entry = project.lock!.importers['.']!.assets.chair as NativeAsset;
-    expect(await readFile(join(root, relativeAssetPath(entry)))).toEqual(nativeBytes);
-    expect(await readFile(contentPath(store, nativeHashHex(entry.hash)))).toEqual(nativeBytes);
-    expect(requests.every((r) => r.auth === undefined)).toBe(true);
-    requests = [];
-    failDownloads = true;
-    await run(['pull', '--frozen-lockfile'], { LOA_HOST: 'http://127.0.0.1:1' });
-    await run(['resolve', '--mode', 'local']);
-    expect(JSON.parse(await readFile(join(root, 'asset-resolution.json'), 'utf8')).chair).toBe(
-      `/${relativeAssetPath(entry)}`,
-    );
-    expect(requests).toEqual([]);
-    await run(['resolve', '--mode', 'remote']);
-    expect(JSON.parse(await readFile(join(root, 'asset-resolution.json'), 'utf8')).chair).toBe(`${host}/files/${oid}`);
-  });
-  it('does not fetch URL additions; pulls only into project cache, reusing until explicit refresh', async () => {
-    await run(['add', `${host}/external.glb`, '--as', 'external']);
-    expect(requests).toEqual([]);
-    await run(['pull']);
-    const entry = (await loadProject(root)).lock!.importers['.']!.assets.external as UrlAsset;
-    const destination = join(root, relativeAssetPath(entry));
-    expect(await readFile(destination, 'utf8')).toBe('external version one');
-    expect(await readdir(root)).not.toContain('store');
-    urlBytes = 'external version two';
-    await run(['pull', '--frozen-lockfile']);
-    expect(requests).toHaveLength(1);
-    expect(await readFile(destination, 'utf8')).toBe('external version one');
-    await run(['pull', '--refresh']);
-    expect(await readFile(destination, 'utf8')).toBe('external version two');
-    expect(requests.every((r) => r.auth === undefined)).toBe(true);
-  });
+  it.each(['pull', 'install'])(
+    'adds and resolves a native asset via %s, then reuses verified bytes offline',
+    async (command) => {
+      await run(['add', 'acme/models/chair', '--as', 'chair']);
+      expect(requests.map((r) => r.path)).toEqual(['/assets/acme/models/chair']);
+      expect(await readdir(root)).not.toContain('store');
+      await run([command, '--frozen-lockfile']);
+      const project = await loadProject(root);
+      const entry = project.lock!.importers['.']!.assets.chair as NativeAsset;
+      expect(await readFile(join(root, relativeAssetPath(entry)))).toEqual(nativeBytes);
+      expect(await readFile(contentPath(store, nativeHashHex(entry.hash)))).toEqual(nativeBytes);
+      expect(requests.every((r) => r.auth === undefined)).toBe(true);
+      requests = [];
+      failDownloads = true;
+      await run([command, '--frozen-lockfile'], { LOA_HOST: 'http://127.0.0.1:1' });
+      await run(['resolve', '--mode', 'local']);
+      expect(JSON.parse(await readFile(join(root, 'asset-resolution.json'), 'utf8')).chair).toBe(
+        `/${relativeAssetPath(entry)}`,
+      );
+      expect(requests).toEqual([]);
+      await run(['resolve', '--mode', 'remote']);
+      expect(JSON.parse(await readFile(join(root, 'asset-resolution.json'), 'utf8')).chair).toBe(
+        `${host}/files/${oid}`,
+      );
+    },
+  );
+  it.each(['pull', 'install'])(
+    'does not fetch URL additions; %s reuses project cache until explicit refresh',
+    async (command) => {
+      await run(['add', `${host}/external.glb`, '--as', 'external']);
+      expect(requests).toEqual([]);
+      await run([command]);
+      const entry = (await loadProject(root)).lock!.importers['.']!.assets.external as UrlAsset;
+      const destination = join(root, relativeAssetPath(entry));
+      expect(await readFile(destination, 'utf8')).toBe('external version one');
+      expect(await readdir(root)).not.toContain('store');
+      urlBytes = 'external version two';
+      await run([command, '--frozen-lockfile']);
+      expect(requests).toHaveLength(1);
+      expect(await readFile(destination, 'utf8')).toBe('external version one');
+      await run([command, '--refresh']);
+      expect(await readFile(destination, 'utf8')).toBe('external version two');
+      expect(requests.every((r) => r.auth === undefined)).toBe(true);
+    },
+  );
   it('pulls native and direct URL assets into one project cache while globally storing only native bytes', async () => {
     await run(['add', 'acme/models/chair', '--as', 'chair']);
     await run(['add', `${host}/external.glb`, '--as', 'external']);

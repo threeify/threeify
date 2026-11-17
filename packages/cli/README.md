@@ -35,6 +35,8 @@ loa assets list --org my-org --project my-project
 
 ## Asset manager
 
+`install` is an alias for `pull`: use `three install` or `loa install` with the same `--frozen-lockfile`, `--refresh`, and `--parallel` options.
+
 Keep consuming asset selections in Git with `assets.json` and `assets-lock.json`. LoA stores immutable native versions; Git branches and merges the selections alongside your code.
 
 ```sh

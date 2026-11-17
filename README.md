@@ -46,7 +46,7 @@ loa auth login
 loa assets list --org my-org --project my-project
 ```
 
-You can also use `three` in place of `loa`, including the shortcuts `three login` and `three logout`. Both commands share configuration and credentials.
+You can also use `three` in place of `loa`, including the shortcuts `three login` and `three logout`. `three install` is an alias for `three pull`. Both executable names share configuration and credentials.
 
 See the [CLI README](packages/cli/README.md) for every command, or run `loa --help`.
 

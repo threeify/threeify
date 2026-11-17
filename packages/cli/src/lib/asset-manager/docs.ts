@@ -30,6 +30,7 @@ export const assetManagerDocs: DocumentOverrides = {
     },
     'loa pull': {
       description: [
+        'Also available as `loa install` or `three install`, with the same options and behavior.',
         'Resolves changed declarations and materializes the combined workspace asset set into project-local `asset_cache/`. Unchanged bindings retain their locked versions. Commit `assets.json` and `assets-lock.json`; the CLI adds generated cache and resolution-map paths to `.gitignore`.',
         'Native files are downloaded anonymously into the content-addressed global store and SHA-256 verified. Cached native bytes are checked before reuse. Project files are materialized by clone, then hardlink, then copy, depending on filesystem support. Hardlinked files share their bytes with the global store, so treat pulled native assets as immutable and use `file:` references for files you edit.',
         'Direct HTTP(S) URLs are downloaded only into this project cache without integrity checks. Existing downloads are reused; `--refresh` fetches their current response again. A failed refresh preserves an existing cached download. URL downloads never enter the global store.',
