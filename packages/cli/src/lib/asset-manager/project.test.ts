@@ -38,6 +38,97 @@ async function manifest(directory: string, value: unknown) {
 }
 
 describe('project asset selections', () => {
+  it.each([undefined, 2])('bounds metadata lookups across workspaces (parallel=%s)', async (parallel) => {
+    await manifest(root, {
+      name: 'root',
+      assets: {
+        e: 'acme/models/e@2.0.0',
+        d: 'acme/models/d@2.0.0',
+        c: 'acme/models/c@2.0.0',
+        b: 'acme/models/b@2.0.0',
+        a: 'acme/models/a@2.0.0',
+      },
+      workspaces: ['levels/*'],
+    });
+    await manifest(join(root, 'levels/lobby'), {
+      name: 'lobby',
+      assets: {
+        j: 'acme/models/j@2.0.0',
+        i: 'acme/models/i@2.0.0',
+        h: 'acme/models/h@2.0.0',
+        g: 'acme/models/g@2.0.0',
+        f: 'acme/models/f@2.0.0',
+      },
+    });
+    let active = 0;
+    let peak = 0;
+    const gates: (() => void)[] = [];
+    const concurrent: Registry = {
+      resolve: vi.fn(async (...args: Parameters<Registry['resolve']>) => {
+        active++;
+        peak = Math.max(peak, active);
+        await new Promise<void>((release) => gates.push(release));
+        active--;
+        return api.resolve(...args);
+      }),
+    };
+    const project = await loadProject(root);
+    const pending = resolveProject(project, host, { api: concurrent, parallel });
+    const expected = parallel ?? 8;
+    await vi.waitFor(() => expect(concurrent.resolve).toHaveBeenCalledTimes(expected));
+    expect(active).toBe(expected);
+    // Complete requests out of order and let queued work fill the available slots.
+    for (let index = 0; index < 10; index++) {
+      await vi.waitFor(() => expect(gates.length).toBeGreaterThan(0));
+      gates.pop()!();
+    }
+    const lock = await pending;
+    expect(peak).toBe(expected);
+    expect(active).toBe(0);
+    expect(concurrent.resolve).toHaveBeenCalledTimes(10);
+    expect(Object.keys(lock.importers)).toEqual(['.', 'levels/lobby']);
+    expect(Object.keys(lock.importers['.']!.assets)).toEqual(['a', 'b', 'c', 'd', 'e']);
+    expect(Object.keys(lock.importers['levels/lobby']!.assets)).toEqual(['f', 'g', 'h', 'i', 'j']);
+    project.lock = lock;
+    vi.mocked(concurrent.resolve).mockClear();
+    await expect(resolveProject(project, host, { api: concurrent, parallel, frozen: true })).resolves.toEqual(lock);
+    expect(concurrent.resolve).not.toHaveBeenCalled();
+  });
+
+  it('drains metadata lookups before reporting the first failure', async () => {
+    await manifest(root, {
+      name: 'root',
+      assets: {
+        a: 'acme/models/a@2.0.0',
+        b: 'acme/models/b@2.0.0',
+        c: 'acme/models/c@2.0.0',
+      },
+    });
+    const failure = new Error('Registry unavailable');
+    let release!: () => void;
+    const concurrent: Registry = {
+      resolve: vi.fn(async (...args: Parameters<Registry['resolve']>) => {
+        if (args[1] === 'acme/models/a') throw failure;
+        if (args[1] === 'acme/models/b')
+          await new Promise<void>((resolve) => {
+            release = resolve;
+          });
+        return api.resolve(...args);
+      }),
+    };
+    let settled = false;
+    const pending = resolveProject(await loadProject(root), host, { api: concurrent, parallel: 2 }).catch(
+      (error: unknown) => {
+        settled = true;
+        return error;
+      },
+    );
+    await vi.waitFor(() => expect(concurrent.resolve).toHaveBeenCalledTimes(3));
+    expect(settled).toBe(false);
+    release();
+    expect(await pending).toBe(failure);
+  });
+
   it('pins a native ref with one metadata lookup and no asset download', async () => {
     await addAsset('acme/models/chair', 'chair', root, host, api);
     const project = await loadProject(root);

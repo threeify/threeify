@@ -26,7 +26,7 @@ export const command = defineCommand({
   describe: 'Pull locked native assets and direct URLs locally; leave file: references live',
   builder: (yargs) =>
     yargs.options({
-      parallel: { type: 'number', default: 8, description: 'Number of concurrent asset downloads' },
+      parallel: { type: 'number', default: 8, description: 'Concurrent metadata lookups or asset downloads' },
       'frozen-lockfile': {
         type: 'boolean',
         default: false,
@@ -38,7 +38,10 @@ export const command = defineCommand({
     const deps = getCliDeps(argv);
     if (!Number.isInteger(argv.parallel) || argv.parallel < 1) throw new Error('--parallel must be a positive integer');
     const project = await loadProject();
-    const lock = await resolveProject(project, (await getConfig(deps)).host, { frozen: argv.frozenLockfile });
+    const lock = await resolveProject(project, (await getConfig(deps)).host, {
+      frozen: argv.frozenLockfile,
+      parallel: argv.parallel,
+    });
     const paths = assetInstallPaths(lock);
     await prepareAssetDirectories(project.root, paths.keys());
     if (!argv.frozenLockfile) await saveProject(project, lock);

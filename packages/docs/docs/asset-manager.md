@@ -65,6 +65,8 @@ loa install
 # pull and install are aliases; three install works too
 ```
 
+New or changed selections resolve metadata in parallel, followed by parallel installation. Each phase allows up to eight concurrent jobs by default; use `loa install --parallel 16` to change both limits. Matching lockfile entries skip metadata requests, and verified global-cache files skip downloads.
+
 Every installed asset uses its manifest key: `assets/<key><extension>`. There are only two places for native asset bytes: the shared global cache and the project's `assets/` directory. There is no project-local versioned store.
 
 For two keys selecting the same native version:
