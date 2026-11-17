@@ -15,7 +15,7 @@
     "lint:fix": "oxlint --type-aware --type-check --fix packages/*/src",
     "loa": "node packages/cli/dist/bin/loa.js",
     "release": "semantic-release",
-    "docs:build": "pnpm build && pnpm --filter @landofassets/website docs:build"
+    "docs:build": "pnpm build && pnpm --filter @landofassets/docs docs:build"
   },
   "devDependencies": {
     "@anolilab/semantic-release-pnpm": "^8.1.29",

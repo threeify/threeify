@@ -19,7 +19,7 @@ loa add acme/furniture/chair@2.3.0 --as chair
 loa pull
 ```
 
-Read the [asset manager overview](packages/website/docs/asset-manager.md) for the philosophy, source rules, workspaces, publication, and runtime integration.
+Read the [asset manager overview](packages/docs/docs/asset-manager.md) for the philosophy, source rules, workspaces, publication, and runtime integration.
 
 ## Quick start
 
