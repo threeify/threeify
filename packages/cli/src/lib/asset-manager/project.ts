@@ -302,7 +302,9 @@ export async function ignoreLocalAssets(root: string): Promise<void> {
   } catch (error) {
     if ((error as NodeJS.ErrnoException).code !== 'ENOENT') throw error;
   }
-  const missing = ['/asset_cache/', '/asset-resolution.json'].filter((entry) => !text.split(/\r?\n/).includes(entry));
+  const missing = ['/asset_cache/', '/asset-resolution.json', '/assets.local.json'].filter(
+    (entry) => !text.split(/\r?\n/).includes(entry),
+  );
   if (missing.length)
     await atomicWrite(path, text + (text && !text.endsWith('\n') ? '\n' : '') + missing.join('\n') + '\n');
 }

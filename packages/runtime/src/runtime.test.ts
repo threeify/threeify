@@ -5,7 +5,14 @@ import { dirname, join } from 'node:path';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import { build, createServer } from 'vite';
 import { createLoaResolver, loadLoaResolver, loaResolver } from './index.js';
-import { buildResolution, liveAssetUrl, nativeHashHex, parseLockfile, relativeAssetPath } from './node.js';
+import {
+  applyLocalOverrides,
+  buildResolution,
+  liveAssetUrl,
+  nativeHashHex,
+  parseLockfile,
+  relativeAssetPath,
+} from './node.js';
 import type { Lockfile, NativeAsset } from './types.js';
 import { loa } from './vite.js';
 
@@ -255,3 +262,97 @@ describe('Vite integration', () => {
     }
   });
 });
+
+describe('local-first development', () => {
+  it('prefers installed files and falls back after deletion without changing aliases', async () => {
+    const { root, value } = await fixture();
+    expect(buildResolution(value, { mode: 'auto', rootDir: root }).chair).toBe(native.remoteUrl);
+    await materialize(root, value);
+    expect(buildResolution(value, { mode: 'auto', rootDir: root }).chair).toContain('/asset_cache/');
+    await rm(join(root, relativeAssetPath(native)));
+    expect(buildResolution(value, { mode: 'auto', rootDir: root }).chair).toBe(native.remoteUrl);
+  });
+  it('overrides a workspace alias without changing tracked selections, even in remote mode', async () => {
+    const { root, value } = await fixture();
+    value.importers['levels/lobby'] = { name: 'lobby', assets: { couch: native } };
+    const before = JSON.stringify(value);
+    await writeFile(join(root, 'assets.local.json'), JSON.stringify({ overrides: { couch: 'file:./brand/logo.png' } }));
+    const overridden = applyLocalOverrides(value, root);
+    expect(overridden.importers['levels/lobby']!.assets.couch).toMatchObject({
+      kind: 'file',
+      path: '../../brand/logo.png',
+    });
+    const map = buildResolution(overridden, { mode: 'remote' });
+    expect(map.couch).toBe(`/${liveAssetUrl('levels/lobby', 'couch')}`);
+    expect(map.chair).toBe(native.remoteUrl);
+    expect(JSON.stringify(value)).toBe(before);
+    await rm(join(root, 'assets.local.json'));
+    expect(applyLocalOverrides(value, root)).toBe(value);
+  });
+  it('reports unknown aliases, invalid override sources, and missing local files', async () => {
+    const { root, value } = await fixture();
+    for (const overrides of [
+      { typo: 'file:./brand/logo.png' },
+      { chair: 'https://example.com/chair.glb' },
+      { chair: 'file:./missing.glb' },
+      { chair: 'file:/absolute.glb' },
+    ]) {
+      await writeFile(join(root, 'assets.local.json'), JSON.stringify({ overrides }));
+      expect(() => applyLocalOverrides(value, root)).toThrow();
+    }
+  });
+  it('bundles overrides and installed assets while keeping missing assets remote by default', async () => {
+    const { root, value } = await fixture();
+    await materialize(root, value);
+    await rm(join(root, relativeAssetPath(value.importers['.']!.assets.remote as import('./types.js').UrlAsset)));
+    await writeFile(join(root, 'assets.local.json'), JSON.stringify({ overrides: { chair: 'file:./brand/logo.png' } }));
+    const result = await build({
+      root,
+      configFile: false,
+      logLevel: 'silent',
+      plugins: [loa()],
+      build: { write: false, minify: false, assetsInlineLimit: 0 },
+    });
+    const output = (Array.isArray(result) ? result[0] : result) as { output: { type: string; code?: string }[] };
+    const code = output.output.find((item) => item.type === 'chunk')!.code!;
+    expect(code).not.toContain(native.remoteUrl);
+    expect(code).toContain('https://example.com/chair@1.0.0');
+    expect(code).toContain('assets/loa-');
+    expect(JSON.parse(await readFile(join(root, 'assets-lock.json'), 'utf8'))).toEqual(value);
+  });
+});
+
+it('reloads the development map as installed files and overrides appear and disappear', async () => {
+  const { root } = await fixture();
+  const server = await createServer({
+    root,
+    configFile: false,
+    logLevel: 'silent',
+    plugins: [loa()],
+    server: { host: '127.0.0.1', port: 0 },
+  });
+  const virtual = () => server.transformRequest('virtual:loa');
+  try {
+    await server.listen();
+    expect((await virtual())!.code).toContain(native.remoteUrl);
+    const installed = join(root, relativeAssetPath(native));
+    await mkdir(dirname(installed), { recursive: true });
+    await writeFile(installed, bytes);
+    await vi.waitFor(async () => expect((await virtual())!.code).not.toContain(native.remoteUrl));
+    const overrides = join(root, 'assets.local.json');
+    await writeFile(overrides, JSON.stringify({ overrides: { chair: 'file:./brand/logo.png' } }));
+    await vi.waitFor(async () => expect((await virtual())!.code).toContain(liveAssetUrl('.', 'chair')));
+    const address = server.httpServer!.address();
+    if (!address || typeof address === 'string') throw new Error('Expected TCP listener');
+    const url = `http://127.0.0.1:${address.port}/${liveAssetUrl('.', 'chair')}`;
+    expect(await (await fetch(url)).text()).toBe('logo bytes');
+    await writeFile(join(root, 'brand/logo.png'), 'artist edits');
+    expect(await (await fetch(url)).text()).toBe('artist edits');
+    await rm(overrides);
+    await vi.waitFor(async () => expect((await virtual())!.code).not.toContain(liveAssetUrl('.', 'chair')));
+    await rm(installed);
+    await vi.waitFor(async () => expect((await virtual())!.code).toContain(native.remoteUrl));
+  } finally {
+    await server.close();
+  }
+}, 15_000);

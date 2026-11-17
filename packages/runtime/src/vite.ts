@@ -1,12 +1,21 @@
 import { createHash } from 'node:crypto';
 import { readFile } from 'node:fs/promises';
+import { existsSync } from 'node:fs';
 import { extname, resolve } from 'node:path';
-import { buildResolution, liveAssetUrl, nativeHashHex, parseLockfile, relativeAssetPath } from './node.js';
+import {
+  applyLocalOverrides,
+  isLocalAsset,
+  buildResolution,
+  liveAssetUrl,
+  nativeHashHex,
+  parseLockfile,
+  relativeAssetPath,
+} from './node.js';
 import type { LockedAsset, Lockfile, ResolveMode } from './types.js';
 import type { Plugin } from 'vite';
 
 export type LoaPluginOptions = {
-  /** Default: remote. Local mode requires loa pull for native and URL sources. */
+  /** Default: auto (installed files first, remote otherwise). Local mode requires loa pull for native and URL sources. */
   mode?: ResolveMode;
   /** Project root; defaults to Vite's root. */
   root?: string;
@@ -51,13 +60,14 @@ function mimeType(path: string): string {
 
 /** Vite plugin. virtual:loa exports the complete synchronous alias-to-URL map. */
 export function loa(options: LoaPluginOptions = {}): Plugin {
-  const mode = options.mode ?? 'remote';
-  if (mode !== 'remote' && mode !== 'local') throw new Error('Expected remote or local LoA mode');
+  const mode = options.mode ?? 'auto';
+  if (!['auto', 'remote', 'local'].includes(mode)) throw new Error('Expected auto, remote or local LoA mode');
   let root = resolve(options.root ?? '.');
   let lockPath = resolve(root, options.lockfile ?? 'assets-lock.json');
   let base = '/';
   let building = false;
-  const readLock = async (): Promise<Lockfile> => parseLockfile(JSON.parse(await readFile(lockPath, 'utf8')));
+  const readLock = async (): Promise<Lockfile> =>
+    applyLocalOverrides(parseLockfile(JSON.parse(await readFile(lockPath, 'utf8'))), root);
   return {
     name: 'loa-assets',
     enforce: 'pre' as const,
@@ -74,13 +84,15 @@ export function loa(options: LoaPluginOptions = {}): Plugin {
       if (id !== virtualId) return undefined;
       const lock = await readLock();
       // Checks duplicate aliases even when every asset will be emitted below.
-      const resolution = buildResolution(lock, { mode, baseUrl: base });
+      const resolution = buildResolution(lock, { mode, baseUrl: base, rootDir: root });
       this.addWatchFile(lockPath);
+      const overridesPath = resolve(root, 'assets.local.json');
+      if (building && existsSync(overridesPath)) this.addWatchFile(overridesPath);
       if (!building) return `export default JSON.parse(${JSON.stringify(JSON.stringify(resolution))});`;
       const entries: string[] = [];
       for (const [directory, importer] of Object.entries(lock.importers)) {
         for (const [alias, entry] of Object.entries(importer.assets)) {
-          if (mode === 'remote' && entry.kind !== 'file') {
+          if (!isLocalAsset(root, entry, mode)) {
             entries.push(`[${JSON.stringify(alias)}]:${JSON.stringify(resolution[alias])}`);
             continue;
           }
@@ -99,7 +111,7 @@ export function loa(options: LoaPluginOptions = {}): Plugin {
       let lock = await readLock();
       let routes = new Map<string, { path: string; entry: LockedAsset }>();
       const updateRoutes = () => {
-        buildResolution(lock, { mode });
+        buildResolution(lock, { mode, rootDir: root });
         routes = new Map();
         const prefix = new URL(base, 'http://loa.local/').pathname.replace(/\/$/, '');
         for (const [directory, importer] of Object.entries(lock.importers)) {
@@ -109,13 +121,24 @@ export function loa(options: LoaPluginOptions = {}): Plugin {
             routes.set(`${prefix}/${route}`, { path: localPath(root, directory, entry), entry });
           }
         }
-        server.watcher.add([lockPath, ...[...routes.values()].map((item) => item.path)]);
+        server.watcher.add([
+          resolve(root, 'assets.local.json'),
+          resolve(root, 'asset_cache'),
+          lockPath,
+          ...[...routes.values()].map((item) => item.path),
+        ]);
       };
       updateRoutes();
-      server.watcher.on('change', (path) => {
-        if (resolve(path) !== lockPath && ![...routes.values()].some((item) => item.path === resolve(path))) return;
+      server.watcher.on('all', (event, path) => {
+        if (!['add', 'change', 'unlink'].includes(event)) return;
+        if (
+          resolve(path) !== lockPath &&
+          resolve(path) !== resolve(root, 'assets.local.json') &&
+          ![...routes.values()].some((item) => item.path === resolve(path))
+        )
+          return;
         void (async () => {
-          if (resolve(path) === lockPath) {
+          if (resolve(path) === lockPath || resolve(path) === resolve(root, 'assets.local.json')) {
             lock = await readLock();
             updateRoutes();
           }

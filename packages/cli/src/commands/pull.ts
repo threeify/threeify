@@ -12,7 +12,7 @@ export const command = defineCommand({
   describe: 'Pull locked native assets and direct URLs locally; leave file: references live',
   builder: (yargs) =>
     yargs.options({
-      parallel: { type: 'number', default: 4, description: 'Number of concurrent asset downloads' },
+      parallel: { type: 'number', default: 8, description: 'Number of concurrent asset downloads' },
       'frozen-lockfile': {
         type: 'boolean',
         default: false,
@@ -37,11 +37,39 @@ export const command = defineCommand({
         entries.map((entry) => [entry.kind === 'file' ? `file:${entry.path}` : relativeAssetPath(entry), entry]),
       ).values(),
     ];
+    let completed = 0;
+    const started = performance.now();
+    const interactive = process.stderr.isTTY;
+    let downloaded = 0;
+    let lastProgress = 0;
+    const progress = (force = false) => {
+      const now = performance.now();
+      if (interactive && (force || now - lastProgress >= 100)) {
+        process.stderr.write(
+          `\r\x1b[2KInstalling assets: ${completed}/${unique.length}, ${(downloaded / 1048576).toFixed(1)} MiB downloaded`,
+        );
+        lastProgress = now;
+      }
+    };
+    const onBytes = (count: number) => {
+      downloaded += count;
+      progress();
+    };
+    progress(true);
     const results = await Promise.allSettled(
-      unique.map((entry) => limit(() => pullAsset(entry, project.root, store, argv.refresh))),
+      unique.map((entry) =>
+        limit(async () => {
+          await pullAsset(entry, project.root, store, argv.refresh, onBytes);
+          completed++;
+          progress(true);
+        }),
+      ),
     );
+    if (interactive) process.stderr.write('\n');
     const failed = results.find((result) => result.status === 'rejected');
     if (failed?.status === 'rejected') throw failed.reason;
-    deps.logger.info('Assets are available locally');
+    deps.logger.info(
+      `Assets are available locally (${completed} ${completed === 1 ? 'source' : 'sources'}, ${(downloaded / 1048576).toFixed(1)} MiB downloaded, ${((performance.now() - started) / 1000).toFixed(1)}s)`,
+    );
   },
 });

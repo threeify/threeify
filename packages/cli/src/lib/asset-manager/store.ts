@@ -1,6 +1,6 @@
 import { createHash, randomUUID } from 'node:crypto';
 import { createWriteStream } from 'node:fs';
-import { chmod, copyFile, link, mkdir, readFile, readdir, rename, rm, stat } from 'node:fs/promises';
+import { chmod, copyFile, mkdir, readFile, readdir, rename, rm, stat } from 'node:fs/promises';
 import { constants } from 'node:fs';
 import { homedir, platform } from 'node:os';
 import { dirname, join, resolve } from 'node:path';
@@ -48,7 +48,12 @@ async function exists(path: string): Promise<boolean> {
 }
 
 /** All fetches are anonymous, including redirects to other origins. */
-async function download(url: string, destination: string, expected?: string): Promise<void> {
+async function download(
+  url: string,
+  destination: string,
+  expected?: string,
+  onBytes?: (count: number) => void,
+): Promise<void> {
   await mkdir(dirname(destination), { recursive: true });
   const temporary = `${destination}.${randomUUID()}.tmp`;
   try {
@@ -56,17 +61,18 @@ async function download(url: string, destination: string, expected?: string): Pr
     if (!response.ok || !response.body) throw new Error(`Download failed (${response.status}): ${url}`);
     const source = Readable.fromWeb(response.body);
     const output = createWriteStream(temporary, { flags: 'wx' });
+    const hash = expected ? createHash('sha256') : undefined;
+    const digest = new Transform({
+      transform(chunk, _encoding, callback) {
+        hash?.update(chunk);
+        onBytes?.(chunk.length);
+        callback(null, chunk);
+      },
+    });
+    await pipeline(source, digest, output);
     if (expected) {
-      const hash = createHash('sha256');
-      const digest = new Transform({
-        transform(chunk, _encoding, callback) {
-          hash.update(chunk);
-          callback(null, chunk);
-        },
-      });
-      await pipeline(source, digest, output);
-      if (hash.digest('hex') !== expected) throw new Error(`Integrity check failed: ${url}`);
-    } else await pipeline(source, output);
+      if (hash!.digest('hex') !== expected) throw new Error(`Integrity check failed: ${url}`);
+    }
     if (expected) await chmod(temporary, 0o444);
     await replaceFile(temporary, destination);
   } finally {
@@ -74,7 +80,7 @@ async function download(url: string, destination: string, expected?: string): Pr
   }
 }
 
-/** Clone first, then hardlink, then copy. Install atomically, without modifying a shared inode. */
+/** Clone first, then copy; never share a writable inode with the store. Install atomically, without modifying a shared inode. */
 export async function materialize(source: string, destination: string): Promise<void> {
   await mkdir(dirname(destination), { recursive: true });
   const temporary = `${destination}.${randomUUID()}.tmp`;
@@ -83,11 +89,7 @@ export async function materialize(source: string, destination: string): Promise<
       await copyFile(source, temporary, constants.COPYFILE_FICLONE_FORCE);
     } catch {
       await rm(temporary, { force: true });
-      try {
-        await link(source, temporary);
-      } catch {
-        await copyFile(source, temporary);
-      }
+      await copyFile(source, temporary);
     }
     await chmod(temporary, 0o444);
     await replaceFile(temporary, destination);
@@ -96,16 +98,36 @@ export async function materialize(source: string, destination: string): Promise<
   }
 }
 
-export async function pullAsset(entry: LockedAsset, root: string, store: string, refresh = false): Promise<void> {
+const pendingContent = new Map<string, Promise<void>>();
+
+export async function pullAsset(
+  entry: LockedAsset,
+  root: string,
+  store: string,
+  refresh = false,
+  onBytes?: (count: number) => void,
+): Promise<void> {
   if (entry.kind === 'file') return;
   const destination = join(root, relativeAssetPath(entry));
   if (entry.kind === 'url') {
-    if (refresh || !(await exists(destination))) await download(entry.url, destination);
+    if (refresh || !(await exists(destination))) await download(entry.url, destination, undefined, onBytes);
     return;
   }
   const hex = nativeHashHex(entry.hash);
   const cached = contentPath(store, hex);
-  if (!(await exists(cached)) || (await hashFileSha256(cached)) !== hex) await download(entry.remoteUrl, cached, hex);
+  let pending = pendingContent.get(cached);
+  if (!pending) {
+    pending = (async () => {
+      if (!(await exists(cached)) || (await hashFileSha256(cached)) !== hex)
+        await download(entry.remoteUrl, cached, hex, onBytes);
+    })();
+    pendingContent.set(cached, pending);
+  }
+  try {
+    await pending;
+  } finally {
+    if (pendingContent.get(cached) === pending) pendingContent.delete(cached);
+  }
   await materialize(cached, destination);
 }
 
