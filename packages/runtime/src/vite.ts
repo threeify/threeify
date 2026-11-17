@@ -129,6 +129,23 @@ export function loa(options: LoaPluginOptions = {}): Plugin {
         ]);
       };
       updateRoutes();
+      const invalidate = () => {
+        const module = server.moduleGraph.getModuleById(virtualId);
+        if (module) server.moduleGraph.invalidateModule(module);
+        server.ws.send({ type: 'full-reload' });
+      };
+      const refresh = async (reloadLock: boolean) => {
+        if (reloadLock) {
+          lock = await readLock();
+          updateRoutes();
+        }
+        invalidate();
+      };
+      // Files created during the initial watcher scan may not emit add events when
+      // ignoreInitial is enabled. Refresh any resolution map cached during startup.
+      server.watcher.once('ready', () => {
+        void refresh(true).catch(invalidate);
+      });
       server.watcher.on('all', (event, path) => {
         if (!['add', 'change', 'unlink'].includes(event)) return;
         if (
@@ -137,20 +154,10 @@ export function loa(options: LoaPluginOptions = {}): Plugin {
           ![...routes.values()].some((item) => item.path === resolve(path))
         )
           return;
-        void (async () => {
-          if (resolve(path) === lockPath || resolve(path) === resolve(root, 'assets.local.json')) {
-            lock = await readLock();
-            updateRoutes();
-          }
-          const module = server.moduleGraph.getModuleById(virtualId);
-          if (module) server.moduleGraph.invalidateModule(module);
-          server.ws.send({ type: 'full-reload' });
-        })().catch(() => {
-          // The next virtual-module load reports the invalid lockfile through Vite.
-          const module = server.moduleGraph.getModuleById(virtualId);
-          if (module) server.moduleGraph.invalidateModule(module);
-          server.ws.send({ type: 'full-reload' });
-        });
+        // The next virtual-module load reports invalid lockfiles or overrides.
+        void refresh(resolve(path) === lockPath || resolve(path) === resolve(root, 'assets.local.json')).catch(
+          invalidate,
+        );
       });
       server.middlewares.use((request, response, next) => {
         const pathname = new URL(request.url ?? '/', 'http://loa.local').pathname;
