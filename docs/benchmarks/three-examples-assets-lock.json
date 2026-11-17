@@ -1,0 +1,980 @@
+{
+  "lockfileVersion": 1,
+  "importers": {
+    ".": {
+      "name": "three-examples-benchmark",
+      "assets": {
+        "animatedmorphsphere": {
+          "kind": "loa",
+          "specifier": "BenHouston3D/three/animatedmorphsphere@1.0.0",
+          "host": "https://api.landofassets.com",
+          "ref": "BenHouston3D/three/animatedmorphsphere",
+          "version": "1.0.0",
+          "hash": "sha256-tfGtF2OG5f+Gn83C2/lGGE6JPIikt4nfzrTK9nTjRC8=",
+          "remoteUrl": "https://api.landofassets.com/files/b5f1ad176386e5ff869fcdc2dbf946184e893c88a4b789dfceb4caf674e3442f",
+          "extension": ".glb"
+        },
+        "anisotropybarnlamp": {
+          "kind": "loa",
+          "specifier": "BenHouston3D/three/anisotropybarnlamp@1.0.0",
+          "host": "https://api.landofassets.com",
+          "ref": "BenHouston3D/three/anisotropybarnlamp",
+          "version": "1.0.0",
+          "hash": "sha256-MGj1themOBau+3agFU8i/eemZOzUuynnpTC9Lcd6AJk=",
+          "remoteUrl": "https://api.landofassets.com/files/3068f5b617a63816aefb76a0154f22fde7a664ecd4bb29e7a530bd2dc77a0099",
+          "extension": ".glb"
+        },
+        "bath-day": {
+          "kind": "loa",
+          "specifier": "BenHouston3D/three/bath-day@1.0.0",
+          "host": "https://api.landofassets.com",
+          "ref": "BenHouston3D/three/bath-day",
+          "version": "1.0.0",
+          "hash": "sha256-lJZsnt7oz/0MvIGSfrng45mqBK6MKeX0x2vDEgfxDQg=",
+          "remoteUrl": "https://api.landofassets.com/files/94966c9edee8cffd0cbc81927eb9e0e399aa04ae8c29e5f4c76bc31207f10d08",
+          "extension": ".glb"
+        },
+        "blouberg-sunrise-2-1k": {
+          "kind": "loa",
+          "specifier": "BenHouston3D/three/blouberg-sunrise-2-1k@1.0.0",
+          "host": "https://api.landofassets.com",
+          "ref": "BenHouston3D/three/blouberg-sunrise-2-1k",
+          "version": "1.0.0",
+          "hash": "sha256-HLgJoTH/PLfflLY51ZZ/xvwI7NJbbEOTCvO12Z8diFU=",
+          "remoteUrl": "https://api.landofassets.com/files/1cb809a131ff3cb7df94b639d5967fc6fc08ecd25b6c43930af3b5d99f1d8855",
+          "extension": ".hdr"
+        },
+        "boombox": {
+          "kind": "loa",
+          "specifier": "BenHouston3D/three/boombox@1.0.0",
+          "host": "https://api.landofassets.com",
+          "ref": "BenHouston3D/three/boombox",
+          "version": "1.0.0",
+          "hash": "sha256-PxTWYIZpsa53SFpTaGkl6Ye42GyPyBCV9pwCjD466B4=",
+          "remoteUrl": "https://api.landofassets.com/files/3f14d6608669b1ae77485a53686925e987b8d86c8fc81095f69c028c3e3ae81e",
+          "extension": ".glb"
+        },
+        "carbonframebike": {
+          "kind": "loa",
+          "specifier": "BenHouston3D/three/carbonframebike@1.0.0",
+          "host": "https://api.landofassets.com",
+          "ref": "BenHouston3D/three/carbonframebike",
+          "version": "1.0.0",
+          "hash": "sha256-34PiOtFtW/lHoAvzZg+76w/RF2rzseKdLpZY6/W+Uyg=",
+          "remoteUrl": "https://api.landofassets.com/files/df83e23ad16d5bf947a00bf3660fbbeb0fd1176af3b1e29d2e9658ebf5be5328",
+          "extension": ".glb"
+        },
+        "coffeemat": {
+          "kind": "loa",
+          "specifier": "BenHouston3D/three/coffeemat@1.0.0",
+          "host": "https://api.landofassets.com",
+          "ref": "BenHouston3D/three/coffeemat",
+          "version": "1.0.0",
+          "hash": "sha256-LPCRqKMtpfxJX2S+sCsRVfxXwMnT74cevOZ5gd7d32k=",
+          "remoteUrl": "https://api.landofassets.com/files/2cf091a8a32da5fc495f64beb02b1155fc57c0c9d3ef871ebce67981dedddf69",
+          "extension": ".glb"
+        },
+        "coffeemug": {
+          "kind": "loa",
+          "specifier": "BenHouston3D/three/coffeemug@1.0.0",
+          "host": "https://api.landofassets.com",
+          "ref": "BenHouston3D/three/coffeemug",
+          "version": "1.0.0",
+          "hash": "sha256-4uOW733mXL5CqUnQC01eG95K1TnXF8lquUjpda5kBe0=",
+          "remoteUrl": "https://api.landofassets.com/files/e2e396ef7de65cbe42a949d00b4d5e1bde4ad539d717c96ab948e975ae6405ed",
+          "extension": ".glb"
+        },
+        "collision-world": {
+          "kind": "loa",
+          "specifier": "BenHouston3D/three/collision-world@1.0.0",
+          "host": "https://api.landofassets.com",
+          "ref": "BenHouston3D/three/collision-world",
+          "version": "1.0.0",
+          "hash": "sha256-B1JMf9WCnG3DVNCxKfeJQ8R6hzfRQUlsbWEfXuLQCGQ=",
+          "remoteUrl": "https://api.landofassets.com/files/07524c7fd5829c6dc354d0b129f78943c47a8737d141496c6d611f5ee2d00864",
+          "extension": ".glb"
+        },
+        "damagedhelmet": {
+          "kind": "loa",
+          "specifier": "BenHouston3D/three/damagedhelmet@1.0.0",
+          "host": "https://api.landofassets.com",
+          "ref": "BenHouston3D/three/damagedhelmet",
+          "version": "1.0.0",
+          "hash": "sha256-VcmnOSQGAir03RoI4UI5+scz/L1DJO3TWpEU1cA2oU8=",
+          "remoteUrl": "https://api.landofassets.com/files/55c9a7392406022af4dd1a08e14239fac733fcbd4324edd35a9114d5c036a14f",
+          "extension": ".glb"
+        },
+        "damagedhelmetgpuinstancing": {
+          "kind": "loa",
+          "specifier": "BenHouston3D/three/damagedhelmetgpuinstancing@1.0.0",
+          "host": "https://api.landofassets.com",
+          "ref": "BenHouston3D/three/damagedhelmetgpuinstancing",
+          "version": "1.0.0",
+          "hash": "sha256-VPgSVhoNkr0eJkXInjgyZsVb7O+3kqAog2lRJUc33do=",
+          "remoteUrl": "https://api.landofassets.com/files/54f812561a0d92bd1e2645c89e383266c55becefb792a028836951254737ddda",
+          "extension": ".glb"
+        },
+        "diffuseroughnessparametersweep": {
+          "kind": "loa",
+          "specifier": "BenHouston3D/three/diffuseroughnessparametersweep@1.0.0",
+          "host": "https://api.landofassets.com",
+          "ref": "BenHouston3D/three/diffuseroughnessparametersweep",
+          "version": "1.0.0",
+          "hash": "sha256-TtIDIFqj4X/arwqk76cODFhaw3L7dF+niN+YNffuzks=",
+          "remoteUrl": "https://api.landofassets.com/files/4ed203205aa3e17fdaaf0aa4efa70e0c585ac372fb745fa788df9835f7eece4b",
+          "extension": ".glb"
+        },
+        "dispersiontest": {
+          "kind": "loa",
+          "specifier": "BenHouston3D/three/dispersiontest@1.0.0",
+          "host": "https://api.landofassets.com",
+          "ref": "BenHouston3D/three/dispersiontest",
+          "version": "1.0.0",
+          "hash": "sha256-u3cQ5urrHIH8X2IADtAUaJ5L2O8wDD+eOgiyptuCG+c=",
+          "remoteUrl": "https://api.landofassets.com/files/bb7710e6eaeb1c81fc5f62000ed014689e4bd8ef300c3f9e3a08b2a6db821be7",
+          "extension": ".glb"
+        },
+        "displacement": {
+          "kind": "loa",
+          "specifier": "BenHouston3D/three/displacement@1.0.0",
+          "host": "https://api.landofassets.com",
+          "ref": "BenHouston3D/three/displacement",
+          "version": "1.0.0",
+          "hash": "sha256-82Hk/wBWPq/mYBX+GRj5F+XmF2rCsOBnOUp7JMP0IUw=",
+          "remoteUrl": "https://api.landofassets.com/files/f361e4ff00563eafe66015fe1918f917e5e6176ac2b0e067394a7b24c3f4214c",
+          "extension": ".mtlx.zip"
+        },
+        "dragonattenuation": {
+          "kind": "loa",
+          "specifier": "BenHouston3D/three/dragonattenuation@1.0.0",
+          "host": "https://api.landofassets.com",
+          "ref": "BenHouston3D/three/dragonattenuation",
+          "version": "1.0.0",
+          "hash": "sha256-26x43j/vszunRM+nA5Nokrbi/Ee1jYisxS9L455UZL4=",
+          "remoteUrl": "https://api.landofassets.com/files/dbac78de3fefb33ba744cfa703936892b6e2fc47b58d88acc52f4be39e5464be",
+          "extension": ".glb"
+        },
+        "duck": {
+          "kind": "loa",
+          "specifier": "BenHouston3D/three/duck@1.0.0",
+          "host": "https://api.landofassets.com",
+          "ref": "BenHouston3D/three/duck",
+          "version": "1.0.0",
+          "hash": "sha256-dsYuY6CuwJzWby4slFKm3O5CjyRk3SxthFlYqPf3zdE=",
+          "remoteUrl": "https://api.landofassets.com/files/76c62e63a0aec09cd66f2e2c9452a6dcee428f2464dd2c6d845958a8f7f7cdd1",
+          "extension": ".glb"
+        },
+        "dungeon-warkarma": {
+          "kind": "loa",
+          "specifier": "BenHouston3D/three/dungeon-warkarma@1.0.0",
+          "host": "https://api.landofassets.com",
+          "ref": "BenHouston3D/three/dungeon-warkarma",
+          "version": "1.0.0",
+          "hash": "sha256-ysD8jBbRB+esTmnv3onCy270vGbDRFak3QkjIY5ar7E=",
+          "remoteUrl": "https://api.landofassets.com/files/cac0fc8c16d107e7ac4e69efde89c2cb6ef4bc66c34456a4dd0923218e5aafb1",
+          "extension": ".glb"
+        },
+        "env-752-hdri-skies-com-1k": {
+          "kind": "loa",
+          "specifier": "BenHouston3D/three/env-752-hdri-skies-com-1k@1.0.0",
+          "host": "https://api.landofassets.com",
+          "ref": "BenHouston3D/three/env-752-hdri-skies-com-1k",
+          "version": "1.0.0",
+          "hash": "sha256-/i1mQdR5jUnoZUioG8fjE8qhbZmqw4tJgIv5dbFk2MU=",
+          "remoteUrl": "https://api.landofassets.com/files/fe2d6641d4798d49e86548a81bc7e313caa16d99aac38b49808bf975b164d8c5",
+          "extension": ".hdr"
+        },
+        "facecap": {
+          "kind": "loa",
+          "specifier": "BenHouston3D/three/facecap@1.0.0",
+          "host": "https://api.landofassets.com",
+          "ref": "BenHouston3D/three/facecap",
+          "version": "1.0.0",
+          "hash": "sha256-a/zm0Py7WDn1ECt5czAHhZ/vfF322etJ4iZFQoELX2Q=",
+          "remoteUrl": "https://api.landofassets.com/files/6bfce6d0fcbb5839f5102b79733007859fef7c5df6d9eb49e2264542810b5f64",
+          "extension": ".glb"
+        },
+        "ferrari": {
+          "kind": "loa",
+          "specifier": "BenHouston3D/three/ferrari@1.0.0",
+          "host": "https://api.landofassets.com",
+          "ref": "BenHouston3D/three/ferrari",
+          "version": "1.0.0",
+          "hash": "sha256-yv4/SNpnl6qb3nXKdovFtX2zZldf0jPpDfGGrpiKh24=",
+          "remoteUrl": "https://api.landofassets.com/files/cafe3f48da6797aa9bde75ca768bc5b57db366575fd233e90df186ae988a876e",
+          "extension": ".glb"
+        },
+        "flower": {
+          "kind": "loa",
+          "specifier": "BenHouston3D/three/flower@1.0.0",
+          "host": "https://api.landofassets.com",
+          "ref": "BenHouston3D/three/flower",
+          "version": "1.0.0",
+          "hash": "sha256-rm3M+cevJsy9X93ayecgkjnmdmP0u6alqgM5q9GfwWM=",
+          "remoteUrl": "https://api.landofassets.com/files/ae6dccf9c7af26ccbd5fdddac9e7209239e67663f4bba6a5aa0339abd19fc163",
+          "extension": ".glb"
+        },
+        "forest-house": {
+          "kind": "loa",
+          "specifier": "BenHouston3D/three/forest-house@1.0.0",
+          "host": "https://api.landofassets.com",
+          "ref": "BenHouston3D/three/forest-house",
+          "version": "1.0.0",
+          "hash": "sha256-1+VnyXjBsmZ0TiD4QY8p6QWR44or1v21Igw7nu2RoTc=",
+          "remoteUrl": "https://api.landofassets.com/files/d7e567c978c1b266744e20f8418f29e90591e38a2bd6fdb5220c3b9eed91a137",
+          "extension": ".glb"
+        },
+        "gears": {
+          "kind": "loa",
+          "specifier": "BenHouston3D/three/gears@1.0.0",
+          "host": "https://api.landofassets.com",
+          "ref": "BenHouston3D/three/gears",
+          "version": "1.0.0",
+          "hash": "sha256-BZxEJFnhJ+D3m4M3pbDqJqbKs+YJcjyTzmDKxS2EMK8=",
+          "remoteUrl": "https://api.landofassets.com/files/059c442459e127e0f79b8337a5b0ea26a6cab3e609723c93ce60cac52d8430af",
+          "extension": ".glb"
+        },
+        "gltf-flamingo": {
+          "kind": "loa",
+          "specifier": "BenHouston3D/three/gltf-flamingo@1.0.0",
+          "host": "https://api.landofassets.com",
+          "ref": "BenHouston3D/three/gltf-flamingo",
+          "version": "1.0.0",
+          "hash": "sha256-nqvrWFh+Tg0R1eI7MKJrc+S45ujIPyw2s8XD/gTc8Z8=",
+          "remoteUrl": "https://api.landofassets.com/files/9eabeb58587e4e0d11d5e23b30a26b73e4b8e6e8c83f2c36b3c5c3fe04dcf19f",
+          "extension": ".glb"
+        },
+        "gltf-pbr-glass-dispersion": {
+          "kind": "loa",
+          "specifier": "BenHouston3D/three/gltf-pbr-glass-dispersion@1.0.0",
+          "host": "https://api.landofassets.com",
+          "ref": "BenHouston3D/three/gltf-pbr-glass-dispersion",
+          "version": "1.0.0",
+          "hash": "sha256-+x6yXaMsDVl8L6ONwijF1svc2ZkGQLH3eJE8e0JhtC0=",
+          "remoteUrl": "https://api.landofassets.com/files/fb1eb25da32c0d597c2fa38dc228c5d6cbdcd9990640b1f778913c7b4261b42d",
+          "extension": ".mtlx.zip"
+        },
+        "godrays-demo": {
+          "kind": "loa",
+          "specifier": "BenHouston3D/three/godrays-demo@1.0.0",
+          "host": "https://api.landofassets.com",
+          "ref": "BenHouston3D/three/godrays-demo",
+          "version": "1.0.0",
+          "hash": "sha256-0lfeGjEZnIbh/+wg99DeaRqPo9BYE+d/lpp7xo7WZTs=",
+          "remoteUrl": "https://api.landofassets.com/files/d257de1a31199c86e1ffec20f7d0de691a8fa3d05813e77f969a7bc68ed6653b",
+          "extension": ".glb"
+        },
+        "horse": {
+          "kind": "loa",
+          "specifier": "BenHouston3D/three/horse@1.0.0",
+          "host": "https://api.landofassets.com",
+          "ref": "BenHouston3D/three/horse",
+          "version": "1.0.0",
+          "hash": "sha256-vrqkpgujczF+Jb8g8EnyatD1yG1HMatn1G64yTySCUc=",
+          "remoteUrl": "https://api.landofassets.com/files/bebaa4a60ba373317e25bf20f049f26ad0f5c86d4731ab67d46eb8c93c920947",
+          "extension": ".glb"
+        },
+        "ice-planet-close": {
+          "kind": "loa",
+          "specifier": "BenHouston3D/three/ice-planet-close@1.0.0",
+          "host": "https://api.landofassets.com",
+          "ref": "BenHouston3D/three/ice-planet-close",
+          "version": "1.0.0",
+          "hash": "sha256-cTHYaqzh3g1I75UrNWXMAVgaeFQ82pXyqyNFworjUAY=",
+          "remoteUrl": "https://api.landofassets.com/files/7131d86aace1de0d48ef952b3565cc01581a78543cda95f2ab2345c28ae35006",
+          "extension": ".jpg"
+        },
+        "ies-007cfb11e343e2f42e3b476be4": {
+          "kind": "loa",
+          "specifier": "BenHouston3D/three/ies-007cfb11e343e2f42e3b476be4@1.0.0",
+          "host": "https://api.landofassets.com",
+          "ref": "BenHouston3D/three/ies-007cfb11e343e2f42e3b476be4",
+          "version": "1.0.0",
+          "hash": "sha256-1eSkuS3+WiswJ/O9jux4qLlnliGwiYRSU79bpBC3Z7I=",
+          "remoteUrl": "https://api.landofassets.com/files/d5e4a4b92dfe5a2b3027f3bd8eec78a8b9679621b089845253bf5ba410b767b2",
+          "extension": ".ies"
+        },
+        "ies-02a7562c650498ebb-f5cf9d5e": {
+          "kind": "loa",
+          "specifier": "BenHouston3D/three/ies-02a7562c650498ebb-f5cf9d5e@1.0.0",
+          "host": "https://api.landofassets.com",
+          "ref": "BenHouston3D/three/ies-02a7562c650498ebb-f5cf9d5e",
+          "version": "1.0.0",
+          "hash": "sha256-kEwloymh3TjQDBxZhexWqunL9DzEWgDi1Ip33piUGSU=",
+          "remoteUrl": "https://api.landofassets.com/files/904c25a329a1dd38d00c1c5985ec56aae9cbf43cc45a00e2d48a77de98941925",
+          "extension": ".ies"
+        },
+        "ies-06b4cfdc8805709e7-5f6084a2": {
+          "kind": "loa",
+          "specifier": "BenHouston3D/three/ies-06b4cfdc8805709e7-5f6084a2@1.0.0",
+          "host": "https://api.landofassets.com",
+          "ref": "BenHouston3D/three/ies-06b4cfdc8805709e7-5f6084a2",
+          "version": "1.0.0",
+          "hash": "sha256-LZs8P3kq91hJZ1DaV57z7RBQLZhTQbmDV8MLjPL65EY=",
+          "remoteUrl": "https://api.landofassets.com/files/2d9b3c3f792af758496750da579ef3ed10502d985341b98357c30b8cf2fae446",
+          "extension": ".ies"
+        },
+        "ies-1a936937a49c63374-8714c72a": {
+          "kind": "loa",
+          "specifier": "BenHouston3D/three/ies-1a936937a49c63374-8714c72a@1.0.0",
+          "host": "https://api.landofassets.com",
+          "ref": "BenHouston3D/three/ies-1a936937a49c63374-8714c72a",
+          "version": "1.0.0",
+          "hash": "sha256-/Wh5nHx/oyd8e3Ap1Im03vWUqDm/ywy2EKc5uxqF8KU=",
+          "remoteUrl": "https://api.landofassets.com/files/fd68799c7c7fa3277c7b7029d489b4def594a839bfcb0cb610a739bb1a85f0a5",
+          "extension": ".ies"
+        },
+        "iridescencelamp": {
+          "kind": "loa",
+          "specifier": "BenHouston3D/three/iridescencelamp@1.0.0",
+          "host": "https://api.landofassets.com",
+          "ref": "BenHouston3D/three/iridescencelamp",
+          "version": "1.0.0",
+          "hash": "sha256-YOmRrTOYXHsrOvHYoND2Lh4tHzwF9djwqr+422twvjA=",
+          "remoteUrl": "https://api.landofassets.com/files/60e991ad33985c7b2b3af1d8a0d0f62e1e2d1f3c05f5d8f0aabfb8db6b70be30",
+          "extension": ".glb"
+        },
+        "iridescentdishwitholives": {
+          "kind": "loa",
+          "specifier": "BenHouston3D/three/iridescentdishwitholives@1.0.0",
+          "host": "https://api.landofassets.com",
+          "ref": "BenHouston3D/three/iridescentdishwitholives",
+          "version": "1.0.0",
+          "hash": "sha256-mKbbf7wLkLmAf9VxiejPcWQmcu4DAWCbCqvMKMaY8p8=",
+          "remoteUrl": "https://api.landofassets.com/files/98a6db7fbc0b90b9807fd57189e8cf71642672ee0301609b0aabcc28c698f29f",
+          "extension": ".glb"
+        },
+        "kira": {
+          "kind": "loa",
+          "specifier": "BenHouston3D/three/kira@1.0.0",
+          "host": "https://api.landofassets.com",
+          "ref": "BenHouston3D/three/kira",
+          "version": "1.0.0",
+          "hash": "sha256-IryHue4Sqn2qW4yMkb2iRbrp9+LGo62MRJauf6GJEM8=",
+          "remoteUrl": "https://api.landofassets.com/files/22bc87b9ee12aa7daa5b8c8c91bda245bae9f7e2c6a3ad8c4496ae7fa18910cf",
+          "extension": ".glb"
+        },
+        "leeperrysmith": {
+          "kind": "loa",
+          "specifier": "BenHouston3D/three/leeperrysmith@1.0.0",
+          "host": "https://api.landofassets.com",
+          "ref": "BenHouston3D/three/leeperrysmith",
+          "version": "1.0.0",
+          "hash": "sha256-QCuKisnwMjLm1ktZYpKXA6Bp2vmdPEmsjrDki+3JxXY=",
+          "remoteUrl": "https://api.landofassets.com/files/402b8a8ac9f03232e6d64b5962929703a069daf99d3c49ac8eb0e48bedc9c576",
+          "extension": ".glb"
+        },
+        "littlesttokyo": {
+          "kind": "loa",
+          "specifier": "BenHouston3D/three/littlesttokyo@1.0.0",
+          "host": "https://api.landofassets.com",
+          "ref": "BenHouston3D/three/littlesttokyo",
+          "version": "1.0.0",
+          "hash": "sha256-g3XCqmgI4orRy5wNQ+FRP1f/14ZSRL9mu71bsOkH4G0=",
+          "remoteUrl": "https://api.landofassets.com/files/8375c2aa6808e28ad1cb9c0d43e1513f57ffd7865244bf66bbbd5bb0e907e06d",
+          "extension": ".glb"
+        },
+        "lobe": {
+          "kind": "loa",
+          "specifier": "BenHouston3D/three/lobe@1.0.0",
+          "host": "https://api.landofassets.com",
+          "ref": "BenHouston3D/three/lobe",
+          "version": "1.0.0",
+          "hash": "sha256-TWVmNh5doNEhpPF6lJ5iJn/Oc2l+1mCHR2eIRAqPmHQ=",
+          "remoteUrl": "https://api.landofassets.com/files/4d6566361e5da0d121a4f17a949e62267fce73697ed66087476788440a8f9874",
+          "extension": ".hdr"
+        },
+        "materialsvariantsshoe": {
+          "kind": "loa",
+          "specifier": "BenHouston3D/three/materialsvariantsshoe@1.0.0",
+          "host": "https://api.landofassets.com",
+          "ref": "BenHouston3D/three/materialsvariantsshoe",
+          "version": "1.0.0",
+          "hash": "sha256-BkVXUxppzuqxYdfYnAbAlhJSxDwjNr0cCegO0NUUbcs=",
+          "remoteUrl": "https://api.landofassets.com/files/064557531a69ceeab161d7d89c06c0961252c43c2336bd1c09e80ed0d5146dcb",
+          "extension": ".glb"
+        },
+        "michelle": {
+          "kind": "loa",
+          "specifier": "BenHouston3D/three/michelle@1.0.0",
+          "host": "https://api.landofassets.com",
+          "ref": "BenHouston3D/three/michelle",
+          "version": "1.0.0",
+          "hash": "sha256-eofhWpnMvF5Yd75m4eTsrgpYGtyvoMzhpVafSZCelo4=",
+          "remoteUrl": "https://api.landofassets.com/files/7a87e15a99ccbc5e5877be66e1e4ecae0a581adcafa0cce1a5569f49909e968e",
+          "extension": ".glb"
+        },
+        "monochrome-studio-02-1k": {
+          "kind": "loa",
+          "specifier": "BenHouston3D/three/monochrome-studio-02-1k@1.0.0",
+          "host": "https://api.landofassets.com",
+          "ref": "BenHouston3D/three/monochrome-studio-02-1k",
+          "version": "1.0.0",
+          "hash": "sha256-yOFC89vrXT89xCkhthSBJpv5xvKfPigzDyhMR488fm4=",
+          "remoteUrl": "https://api.landofassets.com/files/c8e142f3dbeb5d3f3dc42921b61481269bf9c6f29f3e28330f284c478f3c7e6e",
+          "extension": ".hdr"
+        },
+        "moonless-golf-1k": {
+          "kind": "loa",
+          "specifier": "BenHouston3D/three/moonless-golf-1k@1.0.0",
+          "host": "https://api.landofassets.com",
+          "ref": "BenHouston3D/three/moonless-golf-1k",
+          "version": "1.0.0",
+          "hash": "sha256-T1lweAJL2BQpQx6HLUZtiAhlOtYqi8jGHYBSr3Rmw6o=",
+          "remoteUrl": "https://api.landofassets.com/files/4f597078024bd81429431e872d466d8808653ad62a8bc8c61d8052af7466c3aa",
+          "extension": ".hdr"
+        },
+        "moonless-golf-2k-hdr": {
+          "kind": "loa",
+          "specifier": "BenHouston3D/three/moonless-golf-2k-hdr@1.0.0",
+          "host": "https://api.landofassets.com",
+          "ref": "BenHouston3D/three/moonless-golf-2k-hdr",
+          "version": "1.0.0",
+          "hash": "sha256-rAUd7ekam7jWP47ks4Twr1ue1kqT45R0UqaSo96fooU=",
+          "remoteUrl": "https://api.landofassets.com/files/ac051dede91a9bb8d63f8ee4b384f0af5b9ed64a93e3947452a692a3de9fa285",
+          "extension": ".jpg"
+        },
+        "nefertiti": {
+          "kind": "loa",
+          "specifier": "BenHouston3D/three/nefertiti@1.0.0",
+          "host": "https://api.landofassets.com",
+          "ref": "BenHouston3D/three/nefertiti",
+          "version": "1.0.0",
+          "hash": "sha256-2MAMdCtZE3aVJF7v7vDiF9bjPGTurrGQT/OfazFUJjk=",
+          "remoteUrl": "https://api.landofassets.com/files/d8c00c742b59137695245eefeef0e217d6e33c64eeaeb1904ff39f6b31542639",
+          "extension": ".glb"
+        },
+        "nemetona": {
+          "kind": "loa",
+          "specifier": "BenHouston3D/three/nemetona@1.0.0",
+          "host": "https://api.landofassets.com",
+          "ref": "BenHouston3D/three/nemetona",
+          "version": "1.0.0",
+          "hash": "sha256-CaB0CDi/7QzrzM6Z0Vmwzh8nRB94jXMrs0Evgr83l7I=",
+          "remoteUrl": "https://api.landofassets.com/files/09a0740838bfed0cebccce99d159b0ce1f27441f788d732bb3412f82bf3797b2",
+          "extension": ".glb"
+        },
+        "open-pbr-surface-honey": {
+          "kind": "loa",
+          "specifier": "BenHouston3D/three/open-pbr-surface-honey@1.0.0",
+          "host": "https://api.landofassets.com",
+          "ref": "BenHouston3D/three/open-pbr-surface-honey",
+          "version": "1.0.0",
+          "hash": "sha256-pfsLerD3u/A3xDyh7u1S6uMA0Iu0Al7OLjYA1EEH+h4=",
+          "remoteUrl": "https://api.landofassets.com/files/a5fb0b7ab0f7bbf037c43ca1eeed52eae300d08bb4025ece2e3600d44107fa1e",
+          "extension": ".mtlx.zip"
+        },
+        "open-pbr-surface-pearl": {
+          "kind": "loa",
+          "specifier": "BenHouston3D/three/open-pbr-surface-pearl@1.0.0",
+          "host": "https://api.landofassets.com",
+          "ref": "BenHouston3D/three/open-pbr-surface-pearl",
+          "version": "1.0.0",
+          "hash": "sha256-9MJ+bW5MS4jd4+I6Wq6qLkMx9k24bgjwLW+A90fC210=",
+          "remoteUrl": "https://api.landofassets.com/files/f4c27e6d6e4c4b88dde3e23a5aaeaa2e4331f64db86e08f02d6f80f747c2db5d",
+          "extension": ".mtlx.zip"
+        },
+        "open-pbr-surface-velvet": {
+          "kind": "loa",
+          "specifier": "BenHouston3D/three/open-pbr-surface-velvet@1.0.0",
+          "host": "https://api.landofassets.com",
+          "ref": "BenHouston3D/three/open-pbr-surface-velvet",
+          "version": "1.0.0",
+          "hash": "sha256-7BJf8fTHFyI/Ol1U51pu079f7suZFAaq3vvNx3JOtOE=",
+          "remoteUrl": "https://api.landofassets.com/files/ec125ff1f4c717223f3a5d54e75a6ed3bf5feecb991406aadefbcdc7724eb4e1",
+          "extension": ".mtlx.zip"
+        },
+        "parrot": {
+          "kind": "loa",
+          "specifier": "BenHouston3D/three/parrot@1.0.0",
+          "host": "https://api.landofassets.com",
+          "ref": "BenHouston3D/three/parrot",
+          "version": "1.0.0",
+          "hash": "sha256-rcxdrgTQsWlXziC3vruE1Bw7/xwBv1qxz1bQY0W8UXA=",
+          "remoteUrl": "https://api.landofassets.com/files/adcc5dae04d0b16957ce20b7bebb84d41c3bff1c01bf5ab1cf56d06345bc5170",
+          "extension": ".glb"
+        },
+        "pedestrian-overpass-1k": {
+          "kind": "loa",
+          "specifier": "BenHouston3D/three/pedestrian-overpass-1k@1.0.0",
+          "host": "https://api.landofassets.com",
+          "ref": "BenHouston3D/three/pedestrian-overpass-1k",
+          "version": "1.0.0",
+          "hash": "sha256-PSxAaGds/q1dzpoSiWzx68rE6XkUk448KYe3DK1OTEo=",
+          "remoteUrl": "https://api.landofassets.com/files/3d2c4068676cfead5dce9a12896cf1ebcac4e97914938e3c2987b70cad4e4c4a",
+          "extension": ".hdr"
+        },
+        "piz-compressed": {
+          "kind": "loa",
+          "specifier": "BenHouston3D/three/piz-compressed@1.0.0",
+          "host": "https://api.landofassets.com",
+          "ref": "BenHouston3D/three/piz-compressed",
+          "version": "1.0.0",
+          "hash": "sha256-f/dbf1I3nVeapGLIo0uDIRCQI7nesdZ6i0HTX0dcF7M=",
+          "remoteUrl": "https://api.landofassets.com/files/7ff75b7f52379d579aa462c8a34b8321109023b9deb1d67a8b41d35f475c17b3",
+          "extension": ".exr"
+        },
+        "pool": {
+          "kind": "loa",
+          "specifier": "BenHouston3D/three/pool@1.0.0",
+          "host": "https://api.landofassets.com",
+          "ref": "BenHouston3D/three/pool",
+          "version": "1.0.0",
+          "hash": "sha256-vxlP4dNlddo37gFcMHdQr9f3xq6CVGCdu9fQXcsZiak=",
+          "remoteUrl": "https://api.landofassets.com/files/bf194fe1d36575da37ee015c307750afd7f7c6ae8254609dbbd7d05dcb1989a9",
+          "extension": ".glb"
+        },
+        "primaryiondrive": {
+          "kind": "loa",
+          "specifier": "BenHouston3D/three/primaryiondrive@1.0.0",
+          "host": "https://api.landofassets.com",
+          "ref": "BenHouston3D/three/primaryiondrive",
+          "version": "1.0.0",
+          "hash": "sha256-TaK8dttaH2OYZvBSGUJsn94OzjI5w8sFS1Z1qNwc3iE=",
+          "remoteUrl": "https://api.landofassets.com/files/4da2bc76db5a1f639866f05219426c9fde0ece3239c3cb054b5675a8dc1cde21",
+          "extension": ".glb"
+        },
+        "quarry-01-1k": {
+          "kind": "loa",
+          "specifier": "BenHouston3D/three/quarry-01-1k@1.0.0",
+          "host": "https://api.landofassets.com",
+          "ref": "BenHouston3D/three/quarry-01-1k",
+          "version": "1.0.0",
+          "hash": "sha256-oxAfCuie2Efb7YjaP/o92xe1rPgGMJmybOrgj2QO6ps=",
+          "remoteUrl": "https://api.landofassets.com/files/a3101f0ae89ed847dbed88da3ffa3ddb17b5acf8063099b26ceae08f640eea9b",
+          "extension": ".hdr"
+        },
+        "readyplayer-me": {
+          "kind": "loa",
+          "specifier": "BenHouston3D/three/readyplayer-me@1.0.0",
+          "host": "https://api.landofassets.com",
+          "ref": "BenHouston3D/three/readyplayer-me",
+          "version": "1.0.0",
+          "hash": "sha256-tpzselzH3H4cHxnDJAJNCQrgbhMVRBp7zkvyNhEq3cE=",
+          "remoteUrl": "https://api.landofassets.com/files/b69cec7a5cc7dc7e1c1f19c324024d090ae06e1315441a7bce4bf236112addc1",
+          "extension": ".glb"
+        },
+        "robotexpressive": {
+          "kind": "loa",
+          "specifier": "BenHouston3D/three/robotexpressive@1.0.0",
+          "host": "https://api.landofassets.com",
+          "ref": "BenHouston3D/three/robotexpressive",
+          "version": "1.0.0",
+          "hash": "sha256-BH9eX7O7bTeL0d8WymE38qWWyZs6G1aQtAIMBar28xk=",
+          "remoteUrl": "https://api.landofassets.com/files/047f5e5fb3bb6d378bd1df16ca6137f2a596c99b3a1b5690b4020c05aaf6f319",
+          "extension": ".glb"
+        },
+        "rolex": {
+          "kind": "loa",
+          "specifier": "BenHouston3D/three/rolex@1.0.0",
+          "host": "https://api.landofassets.com",
+          "ref": "BenHouston3D/three/rolex",
+          "version": "1.0.0",
+          "hash": "sha256-SNa29Ce+RLe+szzkhFzWiGok23Msfr79o3ufcPoJIvQ=",
+          "remoteUrl": "https://api.landofassets.com/files/48d6b6f427be44b7beb33ce4845cd6886a24db732c7ebefda37b9f70fa0922f4",
+          "extension": ".glb"
+        },
+        "royal-esplanade-2k-hdr": {
+          "kind": "loa",
+          "specifier": "BenHouston3D/three/royal-esplanade-2k-hdr@1.0.0",
+          "host": "https://api.landofassets.com",
+          "ref": "BenHouston3D/three/royal-esplanade-2k-hdr",
+          "version": "1.0.0",
+          "hash": "sha256-sFpmTF+wIt3GEE8lOmaEVw6Zh20wtBoiDI3qRILfbWQ=",
+          "remoteUrl": "https://api.landofassets.com/files/b05a664c5fb022ddc6104f253a6684570e99876d30b41a220c8dea4482df6d64",
+          "extension": ".jpg"
+        },
+        "san-giuseppe-bridge-2k": {
+          "kind": "loa",
+          "specifier": "BenHouston3D/three/san-giuseppe-bridge-2k@1.0.0",
+          "host": "https://api.landofassets.com",
+          "ref": "BenHouston3D/three/san-giuseppe-bridge-2k",
+          "version": "1.0.0",
+          "hash": "sha256-InXN1qX27SYFYnPAjX1Lb8OSFkWTE35vJd7qgXDKfCs=",
+          "remoteUrl": "https://api.landofassets.com/files/2275cdd6a5f6ed26056273c08d7d4b6fc392164593137e6f25deea8170ca7c2b",
+          "extension": ".hdr"
+        },
+        "shaderball2": {
+          "kind": "loa",
+          "specifier": "BenHouston3D/three/shaderball2@1.0.0",
+          "host": "https://api.landofassets.com",
+          "ref": "BenHouston3D/three/shaderball2",
+          "version": "1.0.0",
+          "hash": "sha256-z4fjpSy4yWWZNfpTVB/U5fUwKpIhQgqbiRGo8we179I=",
+          "remoteUrl": "https://api.landofassets.com/files/cf87e3a52cb8c9659935fa53541fd4e5f5302a9221420a9b8911a8f307b5efd2",
+          "extension": ".glb"
+        },
+        "shaderball": {
+          "kind": "loa",
+          "specifier": "BenHouston3D/three/shaderball@1.0.0",
+          "host": "https://api.landofassets.com",
+          "ref": "BenHouston3D/three/shaderball",
+          "version": "1.0.0",
+          "hash": "sha256-D5mrL/xltvGXL8o5WK1MvOqQ8aaj22w1sgrpR/O1c9I=",
+          "remoteUrl": "https://api.landofassets.com/files/0f99ab2ffc65b6f1972fca3958ad4cbcea90f1a6a3db6c35b20ae947f3b573d2",
+          "extension": ".glb"
+        },
+        "shadowmappablemesh": {
+          "kind": "loa",
+          "specifier": "BenHouston3D/three/shadowmappablemesh@1.0.0",
+          "host": "https://api.landofassets.com",
+          "ref": "BenHouston3D/three/shadowmappablemesh",
+          "version": "1.0.0",
+          "hash": "sha256-Gl1JwnvwuIS1z3BWLJAjo7kxqQ4FlE7tAvPFwib/HF0=",
+          "remoteUrl": "https://api.landofassets.com/files/1a5d49c27bf0b884b5cf70562c9023a3b931a90e05944eed02f3c5c226ff1c5d",
+          "extension": ".glb"
+        },
+        "sheenchair": {
+          "kind": "loa",
+          "specifier": "BenHouston3D/three/sheenchair@1.0.0",
+          "host": "https://api.landofassets.com",
+          "ref": "BenHouston3D/three/sheenchair",
+          "version": "1.0.0",
+          "hash": "sha256-B8gCFutdV/ydQUjh4Upp4Z00NuyhrzNZDY02wElX/9Q=",
+          "remoteUrl": "https://api.landofassets.com/files/07c80216eb5d57fc9d4148e1e14a69e19d3436eca1af33590d8d36c04957ffd4",
+          "extension": ".glb"
+        },
+        "soldier": {
+          "kind": "loa",
+          "specifier": "BenHouston3D/three/soldier@1.0.0",
+          "host": "https://api.landofassets.com",
+          "ref": "BenHouston3D/three/soldier",
+          "version": "1.0.0",
+          "hash": "sha256-37Iw/B+ULyWd0AKBoRhpU61gL8XWkGfOY+JLKqQ5c2s=",
+          "remoteUrl": "https://api.landofassets.com/files/dfb230fc1f942f259dd00281a1186953ad602fc5d69067ce63e24b2aa439736b",
+          "extension": ".glb"
+        },
+        "space-ship-hallway": {
+          "kind": "loa",
+          "specifier": "BenHouston3D/three/space-ship-hallway@1.0.0",
+          "host": "https://api.landofassets.com",
+          "ref": "BenHouston3D/three/space-ship-hallway",
+          "version": "1.0.0",
+          "hash": "sha256-BRxY3qAZMLBNnSPRX2qaagYoNY0XlU/rR9+gbgdfO/4=",
+          "remoteUrl": "https://api.landofassets.com/files/051c58dea01930b04d9d23d15f6a9a6a0628358d17954feb47dfa06e075f3bfe",
+          "extension": ".glb"
+        },
+        "spot1lux": {
+          "kind": "loa",
+          "specifier": "BenHouston3D/three/spot1lux@1.0.0",
+          "host": "https://api.landofassets.com",
+          "ref": "BenHouston3D/three/spot1lux",
+          "version": "1.0.0",
+          "hash": "sha256-CTyPhP0HtPCklrOdZ6qviFLqGV7usFJVrSmQ9gan/Z4=",
+          "remoteUrl": "https://api.landofassets.com/files/093c8f84fd07b4f0a496b39d67aaaf8852ea195eeeb05255ad2990f606a7fd9e",
+          "extension": ".hdr"
+        },
+        "spruit-sunrise-2k-hdr": {
+          "kind": "loa",
+          "specifier": "BenHouston3D/three/spruit-sunrise-2k-hdr@1.0.0",
+          "host": "https://api.landofassets.com",
+          "ref": "BenHouston3D/three/spruit-sunrise-2k-hdr",
+          "version": "1.0.0",
+          "hash": "sha256-hnqFO5B2/X5qbg84yl9hP/a7xnIZFyC/JK+CjmOEti0=",
+          "remoteUrl": "https://api.landofassets.com/files/867a853b9076fd7e6a6e0f38ca5f613ff6bbc672191720bf24af828e6384b62d",
+          "extension": ".jpg"
+        },
+        "spruit-sunrise-4k-hdr": {
+          "kind": "loa",
+          "specifier": "BenHouston3D/three/spruit-sunrise-4k-hdr@1.0.0",
+          "host": "https://api.landofassets.com",
+          "ref": "BenHouston3D/three/spruit-sunrise-4k-hdr",
+          "version": "1.0.0",
+          "hash": "sha256-STct/0+dtKq5lfCiJGLfTCXTHVrBbOliC35p0trGnd0=",
+          "remoteUrl": "https://api.landofassets.com/files/49372dff4f9db4aab995f0a22462df4c25d31d5ac16ce9620b7e69d2dac69ddd",
+          "extension": ".jpg"
+        },
+        "standard-surface-color3-627496": {
+          "kind": "loa",
+          "specifier": "BenHouston3D/three/standard-surface-color3-627496@1.0.0",
+          "host": "https://api.landofassets.com",
+          "ref": "BenHouston3D/three/standard-surface-color3-627496",
+          "version": "1.0.0",
+          "hash": "sha256-h//+KeI0wU9ts6FWgGBBrmR3z0POHZmdqf9OgB7UvKc=",
+          "remoteUrl": "https://api.landofassets.com/files/87fffe29e234c14f6db3a156806041ae6477cf43ce1d999da9ff4e801ed4bca7",
+          "extension": ".mtlx.zip"
+        },
+        "standard-surface-combined-test": {
+          "kind": "loa",
+          "specifier": "BenHouston3D/three/standard-surface-combined-test@1.0.0",
+          "host": "https://api.landofassets.com",
+          "ref": "BenHouston3D/three/standard-surface-combined-test",
+          "version": "1.0.0",
+          "hash": "sha256-/loBt86f4fvIchw65Szbm3EywswMfwA0cAp1j2gLWr8=",
+          "remoteUrl": "https://api.landofassets.com/files/fe5a01b7ce9fe1fbc8721c3ae52cdb9b7132c2cc0c7f0034700a758f680b5abf",
+          "extension": ".mtlx.zip"
+        },
+        "standard-surface-condit-47b932": {
+          "kind": "loa",
+          "specifier": "BenHouston3D/three/standard-surface-condit-47b932@1.0.0",
+          "host": "https://api.landofassets.com",
+          "ref": "BenHouston3D/three/standard-surface-condit-47b932",
+          "version": "1.0.0",
+          "hash": "sha256-4W2XjdLJhENwvbBpPJeouq4BZ3VcqALxU4/pvdsZRWk=",
+          "remoteUrl": "https://api.landofassets.com/files/e16d978dd2c9844370bdb0693c97a8baae0167755ca802f1538fe9bddb194569",
+          "extension": ".mtlx.zip"
+        },
+        "standard-surface-height-19fbce": {
+          "kind": "loa",
+          "specifier": "BenHouston3D/three/standard-surface-height-19fbce@1.0.0",
+          "host": "https://api.landofassets.com",
+          "ref": "BenHouston3D/three/standard-surface-height-19fbce",
+          "version": "1.0.0",
+          "hash": "sha256-bu3YkOKfwXrkXpRoXj4/2gAhM6OBrbMXG1Hyp8f0WMg=",
+          "remoteUrl": "https://api.landofassets.com/files/6eedd890e29fc17ae45e94685e3e3fda002133a381adb3171b51f2a7c7f458c8",
+          "extension": ".mtlx.zip"
+        },
+        "standard-surface-heightnormal": {
+          "kind": "loa",
+          "specifier": "BenHouston3D/three/standard-surface-heightnormal@1.0.0",
+          "host": "https://api.landofassets.com",
+          "ref": "BenHouston3D/three/standard-surface-heightnormal",
+          "version": "1.0.0",
+          "hash": "sha256-jzRaDsfxE1l5+HmbbRgj66l0sg01ZJQO0daT/5TjmJU=",
+          "remoteUrl": "https://api.landofassets.com/files/8f345a0ec7f1135979f8799b6d1823eba974b20d3564940ed1d693ff94e39895",
+          "extension": ".mtlx.zip"
+        },
+        "standard-surface-image-0d5fef": {
+          "kind": "loa",
+          "specifier": "BenHouston3D/three/standard-surface-image-0d5fef@1.0.0",
+          "host": "https://api.landofassets.com",
+          "ref": "BenHouston3D/three/standard-surface-image-0d5fef",
+          "version": "1.0.0",
+          "hash": "sha256-A65JOe34S6fQZl4mGqsMrPQeuVqMuaCiAzOR2l3UMn4=",
+          "remoteUrl": "https://api.landofassets.com/files/03ae4939edf84ba7d0665e261aab0cacf41eb95a8cb9a0a2033391da5dd4327e",
+          "extension": ".mtlx.zip"
+        },
+        "standard-surface-image-126c51": {
+          "kind": "loa",
+          "specifier": "BenHouston3D/three/standard-surface-image-126c51@1.0.0",
+          "host": "https://api.landofassets.com",
+          "ref": "BenHouston3D/three/standard-surface-image-126c51",
+          "version": "1.0.0",
+          "hash": "sha256-+LQl9benTFCcLBBtztX6ciHaR4XdRQmzuER0CMYM9TE=",
+          "remoteUrl": "https://api.landofassets.com/files/f8b425f5b7a74c509c2c106dced5fa7221da4785dd4509b3b8447408c60cf531",
+          "extension": ".mtlx.zip"
+        },
+        "standard-surface-image-320d61": {
+          "kind": "loa",
+          "specifier": "BenHouston3D/three/standard-surface-image-320d61@1.0.0",
+          "host": "https://api.landofassets.com",
+          "ref": "BenHouston3D/three/standard-surface-image-320d61",
+          "version": "1.0.0",
+          "hash": "sha256-k0Et8J5dxqbM7qYJB7hAs9WIi4OAuPuUtgIeFBuTnmk=",
+          "remoteUrl": "https://api.landofassets.com/files/93412df09e5dc6a6cceea60907b840b3d5888b8380b8fb94b6021e141b939e69",
+          "extension": ".mtlx.zip"
+        },
+        "standard-surface-image-dc18b0": {
+          "kind": "loa",
+          "specifier": "BenHouston3D/three/standard-surface-image-dc18b0@1.0.0",
+          "host": "https://api.landofassets.com",
+          "ref": "BenHouston3D/three/standard-surface-image-dc18b0",
+          "version": "1.0.0",
+          "hash": "sha256-4KvW+1tXvnPiKV+Xgkh+86w50plTENvf2Yh/gINreV0=",
+          "remoteUrl": "https://api.landofassets.com/files/e0abd6fb5b57be73e2295f9782487ef3ac39d2995310dbdfd9887f80836b795d",
+          "extension": ".mtlx.zip"
+        },
+        "standard-surface-ior-test": {
+          "kind": "loa",
+          "specifier": "BenHouston3D/three/standard-surface-ior-test@1.0.0",
+          "host": "https://api.landofassets.com",
+          "ref": "BenHouston3D/three/standard-surface-ior-test",
+          "version": "1.0.0",
+          "hash": "sha256-WbmE2DkCDggAMSTyP8YwyzEJMhE8xAFjRVn4bGd1JbI=",
+          "remoteUrl": "https://api.landofassets.com/files/59b984d839020e08003124f23fc630cb310932113cc401634559f86c677525b2",
+          "extension": ".mtlx.zip"
+        },
+        "standard-surface-opacit-8ab8e8": {
+          "kind": "loa",
+          "specifier": "BenHouston3D/three/standard-surface-opacit-8ab8e8@1.0.0",
+          "host": "https://api.landofassets.com",
+          "ref": "BenHouston3D/three/standard-surface-opacit-8ab8e8",
+          "version": "1.0.0",
+          "hash": "sha256-ighB+ocY3D+cnSIEHK8BuDy3SNiCEefD1Lk67N6c6/s=",
+          "remoteUrl": "https://api.landofassets.com/files/8a0841fa8718dc3f9c9d22041caf01b83cb748d88211e7c3d4b93aecde9cebfb",
+          "extension": ".mtlx.zip"
+        },
+        "standard-surface-opacity-test": {
+          "kind": "loa",
+          "specifier": "BenHouston3D/three/standard-surface-opacity-test@1.0.0",
+          "host": "https://api.landofassets.com",
+          "ref": "BenHouston3D/three/standard-surface-opacity-test",
+          "version": "1.0.0",
+          "hash": "sha256-YE9dklYeDjBdzCsE0zUpo2xNcnIxQ9OO/+ylt8gRB4A=",
+          "remoteUrl": "https://api.landofassets.com/files/604f5d92561e0e305dcc2b04d33529a36c4d72723143d38effeca5b7c8110780",
+          "extension": ".mtlx.zip"
+        },
+        "standard-surface-rotate2d-test": {
+          "kind": "loa",
+          "specifier": "BenHouston3D/three/standard-surface-rotate2d-test@1.0.0",
+          "host": "https://api.landofassets.com",
+          "ref": "BenHouston3D/three/standard-surface-rotate2d-test",
+          "version": "1.0.0",
+          "hash": "sha256-qrktidiQdPaWSgu0+8u7W+a/FIYB3tN2tOW7yYl0B8w=",
+          "remoteUrl": "https://api.landofassets.com/files/aab92d89d89074f6964a0bb4fbcbbb5be6bf148601ded376b4e5bbc9897407cc",
+          "extension": ".mtlx.zip"
+        },
+        "standard-surface-rotate3d-test": {
+          "kind": "loa",
+          "specifier": "BenHouston3D/three/standard-surface-rotate3d-test@1.0.0",
+          "host": "https://api.landofassets.com",
+          "ref": "BenHouston3D/three/standard-surface-rotate3d-test",
+          "version": "1.0.0",
+          "hash": "sha256-XWJgpCgFh8SfGInSJh/rjVMFO4fPrpkNtbUSHOlD6H4=",
+          "remoteUrl": "https://api.landofassets.com/files/5d6260a4280587c49f1889d2261feb8d53053b87cfae990db5b5121ce943e87e",
+          "extension": ".mtlx.zip"
+        },
+        "standard-surface-roughn-8a218c": {
+          "kind": "loa",
+          "specifier": "BenHouston3D/three/standard-surface-roughn-8a218c@1.0.0",
+          "host": "https://api.landofassets.com",
+          "ref": "BenHouston3D/three/standard-surface-roughn-8a218c",
+          "version": "1.0.0",
+          "hash": "sha256-gZlgDvVTVKQ4qwWcRYzt10+UfspQ/UffAKRiYKW/7Fc=",
+          "remoteUrl": "https://api.landofassets.com/files/8199600ef55354a438ab059c458cedd74f947eca50fd47df00a46260a5bfec57",
+          "extension": ".mtlx.zip"
+        },
+        "standard-surface-sheen-test": {
+          "kind": "loa",
+          "specifier": "BenHouston3D/three/standard-surface-sheen-test@1.0.0",
+          "host": "https://api.landofassets.com",
+          "ref": "BenHouston3D/three/standard-surface-sheen-test",
+          "version": "1.0.0",
+          "hash": "sha256-wLUFdFGsDop19oiDq6PnLHHzp1LS3t65RnAY6ZaoXZY=",
+          "remoteUrl": "https://api.landofassets.com/files/c0b5057451ac0e8a75f68883aba3e72c71f3a752d2dedeb9467018e996a85d96",
+          "extension": ".mtlx.zip"
+        },
+        "standard-surface-specular-test": {
+          "kind": "loa",
+          "specifier": "BenHouston3D/three/standard-surface-specular-test@1.0.0",
+          "host": "https://api.landofassets.com",
+          "ref": "BenHouston3D/three/standard-surface-specular-test",
+          "version": "1.0.0",
+          "hash": "sha256-roh8/fIYgOQQojyWFBGaV8rdPHMRCkN8/c48oR023+g=",
+          "remoteUrl": "https://api.landofassets.com/files/ae887cfdf21880e410a23c9614119a57cadd3c73110a437cfdce3ca11d36dfe8",
+          "extension": ".mtlx.zip"
+        },
+        "standard-surface-textur-bcc9ec": {
+          "kind": "loa",
+          "specifier": "BenHouston3D/three/standard-surface-textur-bcc9ec@1.0.0",
+          "host": "https://api.landofassets.com",
+          "ref": "BenHouston3D/three/standard-surface-textur-bcc9ec",
+          "version": "1.0.0",
+          "hash": "sha256-Mqx60Iflx9Cend1f1mREGP2GKuq2cyU8/bUvwwt/dvQ=",
+          "remoteUrl": "https://api.landofassets.com/files/32ac7ad087e5c7d09e9ddd5fd6644418fd862aeab673253cfdb52fc30b7f76f4",
+          "extension": ".mtlx.zip"
+        },
+        "standard-surface-thin-f-e161a0": {
+          "kind": "loa",
+          "specifier": "BenHouston3D/three/standard-surface-thin-f-e161a0@1.0.0",
+          "host": "https://api.landofassets.com",
+          "ref": "BenHouston3D/three/standard-surface-thin-f-e161a0",
+          "version": "1.0.0",
+          "hash": "sha256-KbyXO4Y4wtRBuZU/JQTysok5O2rRgej5NcFdnumhTHk=",
+          "remoteUrl": "https://api.landofassets.com/files/29bc973b8638c2d441b9953f2504f2b289393b6ad181e8f935c15d9ee9a14c79",
+          "extension": ".mtlx.zip"
+        },
+        "standard-surface-thin-f-eb4dda": {
+          "kind": "loa",
+          "specifier": "BenHouston3D/three/standard-surface-thin-f-eb4dda@1.0.0",
+          "host": "https://api.landofassets.com",
+          "ref": "BenHouston3D/three/standard-surface-thin-f-eb4dda",
+          "version": "1.0.0",
+          "hash": "sha256-t6PDvIp7iJes3vBdOhnvfM96Tvf5S1Wfs/83yf/pZFU=",
+          "remoteUrl": "https://api.landofassets.com/files/b7a3c3bc8a7b8897acdef05d3a19ef7ccf7a4ef7f94b559fb3ff37c9ffe96455",
+          "extension": ".mtlx.zip"
+        },
+        "standard-surface-transm-2d160d": {
+          "kind": "loa",
+          "specifier": "BenHouston3D/three/standard-surface-transm-2d160d@1.0.0",
+          "host": "https://api.landofassets.com",
+          "ref": "BenHouston3D/three/standard-surface-transm-2d160d",
+          "version": "1.0.0",
+          "hash": "sha256-TEzgcXgFc/TxDIQFDR/3NOjOf5ydQP4XiMN2jZd+G/8=",
+          "remoteUrl": "https://api.landofassets.com/files/4c4ce071780573f4f10c84050d1ff734e8ce7f9c9d40fe1788c3768d977e1bff",
+          "extension": ".mtlx.zip"
+        },
+        "standard-surface-transm-745a45": {
+          "kind": "loa",
+          "specifier": "BenHouston3D/three/standard-surface-transm-745a45@1.0.0",
+          "host": "https://api.landofassets.com",
+          "ref": "BenHouston3D/three/standard-surface-transm-745a45",
+          "version": "1.0.0",
+          "hash": "sha256-Wh86Hj+DKy3OaT+eQadPgv3PZmj8Hg7LccV06xXdUFE=",
+          "remoteUrl": "https://api.landofassets.com/files/5a1f3a1e3f832b2dce693f9e41a74f82fdcf6668fc1e0ecb71c574eb15dd5051",
+          "extension": ".mtlx.zip"
+        },
+        "standard-surface-transm-7e5f7c": {
+          "kind": "loa",
+          "specifier": "BenHouston3D/three/standard-surface-transm-7e5f7c@1.0.0",
+          "host": "https://api.landofassets.com",
+          "ref": "BenHouston3D/three/standard-surface-transm-7e5f7c",
+          "version": "1.0.0",
+          "hash": "sha256-Pi9Bx8WRjEzTmqWd8KNkLfqaVhJL5slwJgmOunBdd/4=",
+          "remoteUrl": "https://api.landofassets.com/files/3e2f41c7c5918c4cd39aa59df0a3642dfa9a56124be6c97026098eba705d77fe",
+          "extension": ".mtlx.zip"
+        },
+        "steampunk-camera": {
+          "kind": "loa",
+          "specifier": "BenHouston3D/three/steampunk-camera@1.0.0",
+          "host": "https://api.landofassets.com",
+          "ref": "BenHouston3D/three/steampunk-camera",
+          "version": "1.0.0",
+          "hash": "sha256-s9O/5YWmw8U4BTh40DVh1AcIgSKf+Xs1KJAxJqG0h+I=",
+          "remoteUrl": "https://api.landofassets.com/files/b3d3bfe585a6c3c538053878d03561d4070881229ff97b3528903126a1b487e2",
+          "extension": ".glb"
+        },
+        "stork": {
+          "kind": "loa",
+          "specifier": "BenHouston3D/three/stork@1.0.0",
+          "host": "https://api.landofassets.com",
+          "ref": "BenHouston3D/three/stork",
+          "version": "1.0.0",
+          "hash": "sha256-YMqTVdqt3qsz2T1oVtmcErftCG+Ym/GhuiiPfpbhVZs=",
+          "remoteUrl": "https://api.landofassets.com/files/60ca9355daaddeab33d93d6856d99c12b7ed086f989bf1a1ba288f7e96e1559b",
+          "extension": ".glb"
+        },
+        "tennyson-bust": {
+          "kind": "loa",
+          "specifier": "BenHouston3D/three/tennyson-bust@1.0.0",
+          "host": "https://api.landofassets.com",
+          "ref": "BenHouston3D/three/tennyson-bust",
+          "version": "1.0.0",
+          "hash": "sha256-Eyn2g7kYZHl9+7IDhcTq4rWC3n3LjKKKueb8e8WWfTU=",
+          "remoteUrl": "https://api.landofassets.com/files/1329f683b91864797dfbb20385c4eae2b582de7dcb8ca28ab9e6fc7bc5967d35",
+          "extension": ".glb"
+        },
+        "venice-mask": {
+          "kind": "loa",
+          "specifier": "BenHouston3D/three/venice-mask@1.0.0",
+          "host": "https://api.landofassets.com",
+          "ref": "BenHouston3D/three/venice-mask",
+          "version": "1.0.0",
+          "hash": "sha256-uQAyRbC3PjFnNgC1PdcFC7Fq+CIM989WQzR7Tcm/TTQ=",
+          "remoteUrl": "https://api.landofassets.com/files/b9003245b0b73e31673600b53dd7050bb16af8220cf7cf5643347b4dc9bf4d34",
+          "extension": ".glb"
+        },
+        "venice-sunset-1k": {
+          "kind": "loa",
+          "specifier": "BenHouston3D/three/venice-sunset-1k@1.0.0",
+          "host": "https://api.landofassets.com",
+          "ref": "BenHouston3D/three/venice-sunset-1k",
+          "version": "1.0.0",
+          "hash": "sha256-DnLtRrUxbLX7Z/yB/4WwJKCRRv2J7zgRqNIplketoRg=",
+          "remoteUrl": "https://api.landofassets.com/files/0e72ed46b5316cb5fb67fc81ff85b024a09146fd89ef3811a8d2299647ada118",
+          "extension": ".hdr"
+        },
+        "xbot": {
+          "kind": "loa",
+          "specifier": "BenHouston3D/three/xbot@1.0.0",
+          "host": "https://api.landofassets.com",
+          "ref": "BenHouston3D/three/xbot",
+          "version": "1.0.0",
+          "hash": "sha256-AC+NJp3mjl3OPSUZXK85DRqjWbv6rj/PTI3HjsNsO6U=",
+          "remoteUrl": "https://api.landofassets.com/files/002f8d269de68e5dce3d25195caf390d1aa359bbfaae3fcf4c8dc78ec36c3ba5",
+          "extension": ".glb"
+        }
+      }
+    }
+  }
+}

@@ -24,4 +24,4 @@ export type Lockfile = {
   importers: Record<string, { name: string; assets: Record<string, LockedAsset> }>;
 };
 export type Resolution = Record<string, string>;
-export type ResolveMode = 'remote' | 'local';
+export type ResolveMode = 'auto' | 'remote' | 'local';

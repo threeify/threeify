@@ -233,7 +233,9 @@ describe('asset manager executable', { timeout: 20_000 }, () => {
       );
     }
     expect((await verifyStore(store)).checked).toBe(1);
-    expect(await readFile(join(root, '.gitignore'), 'utf8')).toBe('/asset_cache/\n/asset-resolution.json\n');
+    expect(await readFile(join(root, '.gitignore'), 'utf8')).toBe(
+      '/asset_cache/\n/asset-resolution.json\n/assets.local.json\n',
+    );
   });
   it('automatically resolves each asset locally when present and remotely when absent without fetching', async () => {
     await run(['add', 'acme/models/chair', '--as', 'chair']);
@@ -391,4 +393,32 @@ describe('asset manager executable', { timeout: 20_000 }, () => {
     expect((await verifyStore(store)).corrupt).toEqual([]);
     expect(await readFile(contentPath(store, oid))).toEqual(nativeBytes);
   });
+});
+
+it('installs through the alias with clean non-interactive output', async () => {
+  await run(['add', 'acme/models/chair@1.0.0', '--as', 'chair']);
+  const result = await run(['install', '--frozen-lockfile']);
+  expect(result.stdout).toContain('Assets are available locally (1 source,');
+  expect(result.stdout).not.toContain('\x1b');
+  expect(result.stderr).toBe('');
+});
+
+it('resolves local overrides without rewriting the lock or manifest', async () => {
+  await run(['add', 'acme/models/chair@1.0.0', '--as', 'chair']);
+  const before = await readFile(join(root, 'assets-lock.json'), 'utf8');
+  await writeFile(join(root, 'draft.glb'), 'draft');
+  await writeFile(join(root, 'assets.local.json'), JSON.stringify({ overrides: { chair: 'file:./draft.glb' } }));
+  await run(['resolve', '--mode', 'remote']);
+  expect(JSON.parse(await readFile(join(root, 'asset-resolution.json'), 'utf8')).chair).toContain('/__loa/live/');
+  expect(await readFile(join(root, 'assets-lock.json'), 'utf8')).toBe(before);
+});
+
+it('downloads one shared native hash for concurrent versions', async () => {
+  await run(['add', 'acme/models/chair@1.0.0', '--as', 'chair']);
+  const entry = (await loadProject(root)).lock!.importers['.']!.assets.chair as NativeAsset;
+  await Promise.all([
+    pullAsset(entry, root, store),
+    pullAsset({ ...entry, version: '2.0.0', specifier: 'acme/models/chair@2.0.0' }, root, store),
+  ]);
+  expect(requests.filter((request) => request.path === `/files/${oid}`)).toHaveLength(1);
 });

@@ -1,0 +1,50 @@
+{
+  "node": "v26.3.0",
+  "platform": "darwin 27.2.0 arm64",
+  "sources": 97,
+  "samples": [
+    {
+      "name": "cold store and project",
+      "seconds": 48.207435583,
+      "stdout": "Assets are available locally (97 sources, 128.9 MiB downloaded, 47.7s)",
+      "stderr": ""
+    },
+    {
+      "name": "warm reinstall 1",
+      "seconds": 0.5675307919999978,
+      "stdout": "Assets are available locally (97 sources, 0.0 MiB downloaded, 0.1s)",
+      "stderr": ""
+    },
+    {
+      "name": "warm reinstall 2",
+      "seconds": 0.5705097910000041,
+      "stdout": "Assets are available locally (97 sources, 0.0 MiB downloaded, 0.1s)",
+      "stderr": ""
+    },
+    {
+      "name": "warm reinstall 3",
+      "seconds": 0.5531767079999991,
+      "stdout": "Assets are available locally (97 sources, 0.0 MiB downloaded, 0.1s)",
+      "stderr": ""
+    },
+    {
+      "name": "new project, warm store 1",
+      "seconds": 0.5529232909999992,
+      "stdout": "Assets are available locally (97 sources, 0.0 MiB downloaded, 0.1s)",
+      "stderr": ""
+    },
+    {
+      "name": "new project, warm store 2",
+      "seconds": 0.48843624999999885,
+      "stdout": "Assets are available locally (97 sources, 0.0 MiB downloaded, 0.1s)",
+      "stderr": ""
+    },
+    {
+      "name": "new project, warm store 3",
+      "seconds": 0.48842437500000235,
+      "stdout": "Assets are available locally (97 sources, 0.0 MiB downloaded, 0.1s)",
+      "stderr": ""
+    }
+  ],
+  "parallel": 4
+}

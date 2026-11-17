@@ -1,6 +1,6 @@
 import { join, resolve } from 'node:path';
 import { stat } from 'node:fs/promises';
-import { buildResolution, nativeHashHex, relativeAssetPath } from '@landofassets/runtime/node';
+import { applyLocalOverrides, buildResolution, nativeHashHex, relativeAssetPath } from '@landofassets/runtime/node';
 import { defineCommand } from 'yargs-file-commands';
 import { atomicWrite, loadProject, resolveProject } from '../lib/asset-manager/project.ts';
 import { getConfig } from '../lib/config.ts';
@@ -24,7 +24,10 @@ export const command = defineCommand({
   handler: async (argv) => {
     const deps = getCliDeps(argv);
     const project = await loadProject();
-    const lock = await resolveProject(project, (await getConfig(deps)).host, { frozen: true });
+    const lock = applyLocalOverrides(
+      await resolveProject(project, (await getConfig(deps)).host, { frozen: true }),
+      project.root,
+    );
     const map = buildResolution(lock, { mode: argv.mode === 'auto' ? 'remote' : argv.mode, baseUrl: argv.baseUrl });
     if (argv.mode === 'auto') {
       const local = buildResolution(lock, { mode: 'local', baseUrl: argv.baseUrl });

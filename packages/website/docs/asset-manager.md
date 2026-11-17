@@ -112,7 +112,7 @@ import { defineConfig } from 'vite';
 import { loa } from '@landofassets/runtime/vite';
 
 export default defineConfig({
-  plugins: [loa({ mode: 'remote' })],
+  plugins: [loa()],
 });
 ```
 
@@ -136,6 +136,26 @@ new GLTFLoader().load(assets.url('chair'), (gltf) => scene.add(gltf.scene));
 ```
 
 Both examples use the same `loaResolver({ resolution })` API; Vite supplies the map through an import instead of an application-managed JSON request.
+
+## Try unpublished changes
+
+Keep application code using stable aliases such as `loa:chair`. The manifest and lockfile select the published version; the loader never needs its version number or canonical registry name.
+
+For a local experiment, create `assets.local.json` beside the root lockfile:
+
+```json
+{
+  "overrides": {
+    "chair": "file:./drafts/chair.glb"
+  }
+}
+```
+
+`loa add` and `loa install` add this file to `.gitignore`; add it manually if you create manifests without those commands. Paths are relative to the workspace root, and keys must match existing aliases. Overrides take precedence in every resolution mode. The Vite plugin serves the draft, observes edits, and bundles it when building. With `loa resolve`, regenerate the map after changing overrides and configure your server to serve the generated live-file routes.
+
+Remove an override to return to the installed selection, or its remote URL if no installed copy exists in `auto` mode. `loa install` (an alias for `loa pull`) continues to install the tracked versions and leaves drafts untouched. Publish an approved draft, then update the manifest to share it with teammates.
+
+Native installed files use copy-on-write clones where supported, with independent copies as the fallback. Editing or deleting them cannot change the shared store. Native integrity checks reject edited installed bytes, so use overrides for deliberate edits. Filesystem support determines disk savings; independent copies consume additional space.
 
 ## Review and change selections
 

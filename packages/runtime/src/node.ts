@@ -1,5 +1,6 @@
 import { createHash } from 'node:crypto';
-import { isAbsolute, posix } from 'node:path';
+import { isAbsolute, posix, resolve, relative } from 'node:path';
+import { readFileSync, statSync } from 'node:fs';
 import type { LockedAsset, Lockfile, NativeAsset, Resolution, ResolveMode } from './types.js';
 export type {
   Manifest,
@@ -119,15 +120,59 @@ export function relativeAssetPath(entry: Exclude<LockedAsset, { kind: 'file' }>)
     `${nativeHashHex(entry.hash)}${extension(entry.extension)}`,
   );
 }
+/** Optional untracked local substitutions, keyed by the same aliases as application code. */
+export function applyLocalOverrides(lock: Lockfile, root: string): Lockfile {
+  let input: unknown;
+  try {
+    input = JSON.parse(readFileSync(resolve(root, 'assets.local.json'), 'utf8'));
+  } catch (error) {
+    if ((error as NodeJS.ErrnoException).code === 'ENOENT') return lock;
+    throw error;
+  }
+  const overrides = object(object(input).overrides);
+  const result = structuredClone(lock);
+  for (const [alias, raw] of Object.entries(overrides)) {
+    if (
+      typeof raw !== 'string' ||
+      !raw.startsWith('file:') ||
+      !raw.slice(5) ||
+      raw.includes('\\') ||
+      raw.includes('\0') ||
+      isAbsolute(raw.slice(5)) ||
+      /^[a-z]:/i.test(raw.slice(5))
+    )
+      throw new Error(`Local override ${alias} must be a portable relative file: reference`);
+    const owner = Object.entries(result.importers).filter(([, importer]) => Object.hasOwn(importer.assets, alias));
+    if (owner.length !== 1) throw new Error(`Unknown or duplicate local override alias: ${alias}`);
+    const [directory, importer] = owner[0]!;
+    const absolute = resolve(root, raw.slice(5));
+    if (!statSync(absolute).isFile()) throw new Error(`Local override is not a file: ${alias}`);
+    const path = relative(resolve(root, directory), absolute).split('\\').join('/');
+    importer.assets[alias] = { kind: 'file', specifier: `file:${path}`, path };
+  }
+  return result;
+}
+
+export function isLocalAsset(root: string, entry: LockedAsset, mode: ResolveMode): boolean {
+  if (entry.kind === 'file' || mode === 'local') return true;
+  if (mode === 'remote') return false;
+  try {
+    return statSync(resolve(root, relativeAssetPath(entry))).isFile();
+  } catch (error) {
+    if (['ENOENT', 'ENOTDIR'].includes((error as NodeJS.ErrnoException).code ?? '')) return false;
+    throw error;
+  }
+}
+
 /** URL served by the Vite plugin for precisely this locked local file. */
 export function liveAssetUrl(importer: string, alias: string): string {
   return `__loa/live/${urlHash(`${importer}\0${alias}`)}`;
 }
 export function buildResolution(
   lock: Lockfile,
-  { mode, baseUrl = '/', rootDir: _rootDir }: { mode: ResolveMode; baseUrl?: string; rootDir?: string },
+  { mode, baseUrl = '/', rootDir = '.' }: { mode: ResolveMode; baseUrl?: string; rootDir?: string },
 ): Resolution {
-  if (mode !== 'remote' && mode !== 'local') throw new Error('Expected remote or local resolution mode');
+  if (!['auto', 'remote', 'local'].includes(mode)) throw new Error('Expected auto, remote or local resolution mode');
   const result: Resolution = Object.create(null);
   const prefix = baseUrl.endsWith('/') ? baseUrl : `${baseUrl}/`;
   for (const [directory, importer] of Object.entries(lock.importers)) {
@@ -136,7 +181,7 @@ export function buildResolution(
       result[alias] =
         entry.kind === 'file'
           ? `${prefix}${liveAssetUrl(directory, alias)}`
-          : mode === 'remote'
+          : !isLocalAsset(rootDir, entry, mode)
             ? entry.kind === 'loa'
               ? entry.remoteUrl
               : entry.url
