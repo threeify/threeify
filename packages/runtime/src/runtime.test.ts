@@ -339,6 +339,31 @@ describe('local-first development', () => {
   });
 });
 
+it('refreshes the cached development map when initial watcher scanning completes', async () => {
+  const { root } = await fixture();
+  const server = await createServer({
+    root,
+    configFile: false,
+    logLevel: 'silent',
+    plugins: [loa()],
+    server: { host: '127.0.0.1', port: 0, watch: null },
+  });
+  const virtual = () => server.transformRequest('virtual:loa');
+  try {
+    await server.listen();
+    expect((await virtual())!.code).toContain(native.remoteUrl);
+    const installed = join(root, relativeAssetPath(native, 'chair'));
+    await mkdir(dirname(installed), { recursive: true });
+    await writeFile(installed, bytes);
+    // With events disabled, the file's appearance alone cannot invalidate Vite's cache.
+    expect((await virtual())!.code).toContain(native.remoteUrl);
+    server.watcher.emit('ready');
+    await vi.waitFor(async () => expect((await virtual())!.code).not.toContain(native.remoteUrl));
+  } finally {
+    await server.close();
+  }
+});
+
 it('reloads the development map as installed files and overrides appear and disappear', async () => {
   const { root } = await fixture();
   const server = await createServer({

@@ -47,9 +47,9 @@ loa pull
 loa resolve
 ```
 
-For a static site, run `loa install` and load `/assets/chair.glb` directly. Assets install at `assets/<manifest-key><extension>`; canonical keys can use bare version values, while short aliases specify full refs. Keys selecting the same native version use relative symlinks, or copies when symlinks are unavailable. Different versions can coexist under different keys. No runtime adapter is required. Serve `assets/` at the same URL path, or copy it into your build output, dereferencing symlinks if needed. Commit the manifests and lockfile; CI can use `loa install --frozen-lockfile`.
+For a static site, run `loa install` and load `/assets/chair.glb` directly. Assets install at `assets/<manifest-key><extension>`; canonical keys can use bare version values, while short aliases specify full refs. Every native binding links directly to the global cached object, or receives an independent copy when symlinks are unavailable. Different versions can coexist under different keys. No runtime adapter is required. Serve `assets/` at the same URL path, or copy it into your build output, dereferencing symlinks if needed. Commit the manifests and lockfile; CI can use `loa install --frozen-lockfile`.
 
-Native refs are hash-verified and downloaded into a global store, then materialized in `assets/` using copy-on-write clones or independent copies. Direct HTTP(S) URLs skip integrity checks and global caching; `pull` downloads them into project-local `assets/`, and `pull --refresh` fetches them again. `file:` entries load live from their manifest-relative location and are never copied, hashed, or changed by `pull`. Adding any source does not download its bytes.
+Native refs are hash-verified and downloaded into a global store, then linked directly into `assets/` from the read-only global cache, with clone/copy fallback. Direct HTTP(S) URLs skip integrity checks and global caching; `pull` downloads them into project-local `assets/`, and `pull --refresh` fetches them again. `file:` entries load live from their manifest-relative location and are never copied, hashed, or changed by `pull`. Adding any source does not download its bytes.
 
 | Command                                                           | Purpose                                                                   |
 | ----------------------------------------------------------------- | ------------------------------------------------------------------------- |
@@ -307,3 +307,5 @@ loa comments edit 123 MyChair --text "Updated comment"
 ```
 
 Org and project use the existing configured defaults; explicit `--org` and `--project` override them. Reads (`get`, `download`, `thumbnail`) accept selectors. Publications (`create`, `upload`) require exact `major.minor.patch` versions when provided. `create` still infers a name from the file when neither form specifies one. Whole-asset commands (`update`, `delete`, `versions`, and comments) accept only bare names and reject versions.
+
+`loa install`, `loa pull`, and `loa remove` also prune obsolete local files, aliases, and directories from `assets/`. Scanning and cleanup reuse the installation task queue and its `--parallel` cap. Native aliases target the global cache directly; pruning local links leaves cached bytes untouched. The global cache, declared live inputs, and local override files are retained. Keep unreferenced source files outside the managed `assets/` output.

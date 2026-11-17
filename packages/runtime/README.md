@@ -2,7 +2,7 @@
 
 Resolve Git-locked asset aliases in browsers and integrate them with Vite.
 
-For static local URLs, the runtime is optional: run `loa install`, serve the generated `assets/` directory, and load `/assets/chair.glb` directly. Manifest keys determine `assets/<key><extension>` paths. Bindings selecting the same version share a local file through relative symlinks, with a copy fallback; different versions use separate manifest keys. Use this runtime when you need automatic remote/local resolution or live overrides.
+For static local URLs, the runtime is optional: run `loa install`, serve the generated `assets/` directory, and load `/assets/chair.glb` directly. Manifest keys determine `assets/<key><extension>` paths. Native bindings point directly to their read-only global cache objects, with a copy fallback; different versions use separate manifest keys. Use this runtime when you need automatic remote/local resolution or live overrides.
 
 ```ts
 import { loaResolver } from '@landofassets/runtime';
@@ -35,4 +35,4 @@ For unpublished experiments, create a gitignored `assets.local.json` beside the 
 
 Paths are relative to that root. Use the existing binding name, including for workspace assets. Vite serves edits live and reloads when overrides or installed files are added or removed. Remove the override entry to return to the selected installed or remote version. `loa resolve` also honors overrides; custom servers must serve its generated live-file routes. `loa install` still installs the tracked selections and never writes drafts into the shared store.
 
-Native installed files use copy-on-write clones or independent copies, so edits and deletion cannot mutate the store. Integrity checks still reject edited installed native files; use an override for deliberate changes.
+Native installed files link directly to read-only cache objects, with clone/copy fallback. Deleting a local link does not remove its target. Treat installed native files as read-only. Integrity checks still reject edited installed native files; use an override for deliberate changes.
