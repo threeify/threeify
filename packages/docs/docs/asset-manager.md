@@ -65,6 +65,8 @@ loa install
 # pull and install are aliases; three install works too
 ```
 
+Installation uses one FIFO task queue. Metadata tasks enqueue native downloads as soon as their results arrive, allowing downloads and remaining metadata lookups to overlap. Up to eight tasks run at once across the workspace; use `loa install --parallel 16` to change that shared limit. Matching lockfile entries skip metadata requests, and verified global-cache files skip downloads.
+
 Every installed asset uses its manifest key: `assets/<key><extension>`. There are only two places for native asset bytes: the shared global cache and the project's `assets/` directory. There is no project-local versioned store.
 
 For two keys selecting the same native version:
@@ -89,7 +91,7 @@ assets/
 
 The canonical binding is preferred as the real local file. Other keys selecting that same source use relative symlinks to it. If symlinks are unavailable, the installer creates independent copies instead. An alias selecting a different version gets its own file cloned or copied from the global cache. No alias points into the global cache. If no canonical key is declared, one of the declared alias paths holds the local file; the installer does not create an undeclared canonical path.
 
-Use `loa add acme/furniture/chair@0.6.0 --as chair` to select another version under a separate key. Nested keys create subdirectories, and a key already ending in the source extension does not receive it twice. Conflicting paths, including case collisions and file/directory collisions, fail before downloads. Versions and hashes stay in `assets-lock.json`, keeping application URLs stable across updates.
+Use `loa add acme/furniture/chair@0.6.0 --as chair` to select another version under a separate key. Nested keys create subdirectories, and a key already ending in the source extension does not receive it twice. Conflicting paths, including case collisions and file/directory collisions, fail before project asset files are installed. Versions and hashes stay in `assets-lock.json`, keeping application URLs stable across updates.
 
 Serve the project root with your existing static server and use either URL directly:
 

@@ -2,6 +2,7 @@ import { randomUUID } from 'node:crypto';
 import { mkdir, readFile, rename, rm, stat, writeFile } from 'node:fs/promises';
 import { basename, dirname, extname, isAbsolute, join, relative, resolve, sep } from 'node:path';
 import glob from 'fast-glob';
+import pLimit from 'p-limit';
 import {
   createAnonymousClient,
   getAsset,
@@ -11,6 +12,7 @@ import {
   assetVersionSchema,
 } from '@landofassets/sdk';
 import { parseLockfile, type Lockfile, type LockedAsset } from '@landofassets/runtime/node';
+import type { ScheduleTask } from './task-queue.ts';
 
 export type Manifest = { name: string; assets: Record<string, string>; workspaces?: string[] };
 export type Project = { root: string; current: string; manifests: Record<string, Manifest>; lock?: Lockfile };
@@ -213,38 +215,59 @@ export async function resolveProject(
     frozen?: boolean;
     update?: Set<string>;
     api?: Registry;
+    parallel?: number;
+    schedule?: ScheduleTask;
+    onResolved?: (entry: LockedAsset) => void;
   } = {},
 ): Promise<Lockfile> {
   if (options.frozen && !project.lock) throw new Error('Frozen lockfile requested but assets-lock.json is missing');
   const lock: Lockfile = { lockfileVersion: 1, importers: Object.create(null) };
+  const limit: ScheduleTask = options.schedule ?? pLimit(options.parallel ?? 8);
+  const pending: Promise<{ directory: string; alias: string; entry: LockedAsset }>[] = [];
   for (const key of Object.keys(project.manifests).toSorted()) {
     const manifest = project.manifests[key]!;
     const previous = project.lock?.importers[key];
-    const assets: Record<string, LockedAsset> = Object.create(null);
+    lock.importers[key] = { name: manifest.name, assets: Object.create(null) };
     for (const alias of Object.keys(manifest.assets).toSorted()) {
-      const value = manifest.assets[alias]!;
-      const specifier =
-        /^(?:[0-9]+(?:\.[0-9]+){0,2}|latest)$/.test(value) && alias.split('/').length === 3
-          ? `${alias}@${value}`
-          : value;
-      const old = previous?.assets[alias];
-      let matches = old?.specifier === specifier;
-      if (matches && old?.kind === 'loa') {
-        const selected = parseRef(specifier);
-        matches =
-          selected.ref === old.ref &&
-          (selected.selector === undefined ||
-            selected.selector === 'latest' ||
-            old.version === selected.selector ||
-            old.version.startsWith(`${selected.selector}.`));
-      }
-      if (matches && old && !options.update?.has(alias)) assets[alias] = old;
-      else {
-        if (options.frozen) throw new Error(`Frozen lockfile differs from assets.json: ${key}/${alias}`);
-        assets[alias] = await resolveSource(specifier, old?.kind === 'loa' ? old.host : host, options.api);
-      }
+      pending.push(
+        limit(async () => {
+          const value = manifest.assets[alias]!;
+          const specifier =
+            /^(?:[0-9]+(?:\.[0-9]+){0,2}|latest)$/.test(value) && alias.split('/').length === 3
+              ? `${alias}@${value}`
+              : value;
+          const old = previous?.assets[alias];
+          let matches = old?.specifier === specifier;
+          if (matches && old?.kind === 'loa') {
+            const selected = parseRef(specifier);
+            matches =
+              selected.ref === old.ref &&
+              (selected.selector === undefined ||
+                selected.selector === 'latest' ||
+                old.version === selected.selector ||
+                old.version.startsWith(`${selected.selector}.`));
+          }
+          let entry: LockedAsset;
+          if (matches && old && !options.update?.has(alias)) entry = old;
+          else {
+            if (options.frozen) throw new Error(`Frozen lockfile differs from assets.json: ${key}/${alias}`);
+            entry = await resolveSource(specifier, old?.kind === 'loa' ? old.host : host, options.api);
+          }
+          options.onResolved?.(entry);
+          return { directory: key, alias, entry };
+        }),
+      );
     }
-    lock.importers[key] = { name: manifest.name, assets };
+  }
+  // Drain queued lookups before reporting failure. Apply successful results in manifest order,
+  // not completion order, so concurrent requests cannot change lockfile ordering.
+  const results = await Promise.allSettled(pending);
+  const failed = results.find((result) => result.status === 'rejected');
+  if (failed?.status === 'rejected') throw failed.reason;
+  for (const result of results) {
+    if (result.status !== 'fulfilled') continue;
+    const { directory, alias, entry } = result.value;
+    lock.importers[directory]!.assets[alias] = entry;
   }
   if (options.frozen && JSON.stringify(lock) !== JSON.stringify(project.lock)) {
     // Compare canonical output because user-edited key order is not a semantic change.

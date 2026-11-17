@@ -23,6 +23,12 @@ let requests: { path: string; auth?: string }[];
 let urlBytes: string;
 let serveCorrupt: boolean;
 let latest: string;
+let metadataDelay = 0;
+let metadataActive = 0;
+let metadataPeak = 0;
+let holdMetadata = false;
+let releaseMetadata: (() => void) | undefined;
+let downloadBeforeMetadata = false;
 let failDownloads: boolean;
 let assetMissing: boolean;
 let rejectPublication: boolean;
@@ -110,8 +116,26 @@ beforeAll(async () => {
       const selector = path.split('@')[1];
       const version = selector === undefined || selector === 'latest' ? latest : selector === '1' ? '1.9.0' : selector;
       response.setHeader('Content-Type', 'application/json');
-      response.end(JSON.stringify(assetResponse(version)));
+      if (holdMetadata && version === '2.0.0') {
+        const timer = setTimeout(() => releaseMetadata?.(), 1500);
+        releaseMetadata = () => {
+          clearTimeout(timer);
+          releaseMetadata = undefined;
+          response.end(JSON.stringify(assetResponse(version)));
+        };
+      } else if (metadataDelay) {
+        metadataActive++;
+        metadataPeak = Math.max(metadataPeak, metadataActive);
+        setTimeout(() => {
+          metadataActive--;
+          response.end(JSON.stringify(assetResponse(version)));
+        }, metadataDelay);
+      } else response.end(JSON.stringify(assetResponse(version)));
     } else if (path === `/files/${oid}`) {
+      if (releaseMetadata) {
+        downloadBeforeMetadata = true;
+        releaseMetadata();
+      }
       response.writeHead(failDownloads ? 503 : 200);
       response.end(serveCorrupt ? 'wrong bytes' : nativeBytes);
     } else if (path === '/external-v2.glb') {
@@ -138,6 +162,12 @@ beforeEach(async () => {
   root = await mkdtemp(join(tmpdir(), 'loa-manager-cli-'));
   store = join(root, 'store');
   requests = [];
+  metadataDelay = 0;
+  metadataActive = 0;
+  metadataPeak = 0;
+  holdMetadata = false;
+  releaseMetadata = undefined;
+  downloadBeforeMetadata = false;
   urlBytes = 'external version one';
   serveCorrupt = false;
   latest = '1.0.0';
@@ -516,4 +546,46 @@ it('refreshes a stable URL binding when its source URL changes', async () => {
   await run(['add', `${host}/external-v2.glb`, '--as', 'external']);
   await run(['install']);
   expect(await readFile(join(root, 'assets/external.glb'), 'utf8')).toBe('bytes from the second URL');
+});
+
+it('uses install --parallel for metadata lookups as well as downloads', async () => {
+  metadataDelay = 20;
+  await writeFile(
+    join(root, 'assets.json'),
+    JSON.stringify({
+      name: 'parallel',
+      assets: Object.fromEntries(
+        Array.from({ length: 5 }, (_, index) => [`chair-${index}`, 'acme/models/chair@1.0.0']),
+      ),
+    }),
+  );
+  await run(['install', '--parallel', '2']);
+  expect(metadataPeak).toBe(2);
+  expect(metadataActive).toBe(0);
+  expect(requests.filter((request) => request.path.startsWith('/assets/'))).toHaveLength(5);
+  requests = [];
+  await run(['install', '--parallel', '2', '--frozen-lockfile']);
+  expect(requests).toEqual([]);
+});
+
+it('starts a queued download while another metadata lookup is still pending', async () => {
+  holdMetadata = true;
+  await writeFile(
+    join(root, 'assets.json'),
+    JSON.stringify({
+      name: 'pipeline',
+      assets: {
+        a: 'acme/models/chair@1.0.0',
+        b: 'acme/models/chair@2.0.0',
+        c: 'acme/models/chair@1.0.0',
+      },
+    }),
+  );
+  await run(['install', '--parallel', '2']);
+  expect(downloadBeforeMetadata).toBe(true);
+  expect(releaseMetadata).toBeUndefined();
+  expect(await readFile(join(root, 'assets/a.glb'))).toEqual(nativeBytes);
+  expect(await readFile(join(root, 'assets/b.glb'))).toEqual(nativeBytes);
+  expect(await readlink(join(root, 'assets/c.glb'))).toBe('a.glb');
+  expect(requests.filter((request) => request.path.startsWith('/files/'))).toHaveLength(1);
 });
