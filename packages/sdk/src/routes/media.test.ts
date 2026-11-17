@@ -1,6 +1,8 @@
 import { describe, expect, it } from 'vitest';
 import { createAnonymousClient } from '../client.js';
 import {
+  HdrImageFormat,
+  MediaFormat,
   getMediaOriginalUrl,
   getMediaUrl,
   mediaTaskAcceptedSchema,
@@ -40,15 +42,27 @@ describe('Media API URL builders', () => {
       expect(url.href).toBe(`${host}/media/my-org/my-project/my-asset.webp?width=512&height=512`);
     });
 
-    it('builds a versioned JPEG XL conversion download URL', () => {
+    it('builds a versioned EXR conversion download URL', () => {
       const url = getMediaUrl(client, {
         params: { ...params, version: '1.2.3' },
-        format: 'jxl',
+        format: 'exr',
         query: { download: true, cache: false },
       });
-      expect(url.pathname).toBe('/media/my-org/my-project/my-asset@1.2.3.jxl');
+      expect(url.pathname).toBe('/media/my-org/my-project/my-asset@1.2.3.exr');
       expect(url.searchParams.get('download')).toBe('true');
       expect(url.searchParams.get('cache')).toBe('false');
+    });
+
+    it('rejects removed JPEG XL conversion requests from JavaScript callers', () => {
+      expect(HdrImageFormat.safeParse('jxl').success).toBe(false);
+      expect(MediaFormat.safeParse('jxl').success).toBe(false);
+      expect(() =>
+        getMediaUrl(client, {
+          params,
+          // @ts-expect-error JPEG XL is no longer a supported media format.
+          format: 'jxl',
+        }),
+      ).toThrow();
     });
 
     it('builds envmap route for hdr', () => {
@@ -209,7 +223,6 @@ describe('versioned media references', () => {
         'step',
         'hdr',
         'exr',
-        'jxl',
         'ultrahdr',
       ] as const) {
         expect(decodeURIComponent(getMediaUrl(client, { params: selected, format }).pathname)).toContain(
