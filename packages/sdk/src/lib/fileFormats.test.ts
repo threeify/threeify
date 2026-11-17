@@ -13,17 +13,10 @@ import {
 } from './fileFormats.js';
 
 describe('fileFormats', () => {
-  it('recognizes JPEG XL as an environment map for imports', () => {
-    expect(getFileFormatInfoFromFileName('Studio.JXL', FileFormat)).toMatchObject({
-      format: 'jxl',
-      mimeType: 'image/jxl',
-      extension: '.jxl',
-    });
-    expect(getAssetTypeFromFileFormat('jxl')).toBe('ENVMAP');
-    expect(getFileFormatInfoAcceptObject(ENVMAP_ASSET_FILE_FORMATS)['image/jxl']).toEqual(['.jxl']);
-    expect(getFileFormatInfoFromMimeTypeAndFileName('image/jxl', 'studio.jxl', ENVMAP_ASSET_FILE_FORMATS)?.format).toBe(
-      'jxl',
-    );
+  it('does not recognize JPEG XL uploads', () => {
+    expect(getFileFormatInfoFromFileName('Studio.JXL', FileFormat)).toBeUndefined();
+    expect(getFileFormatInfoAcceptObject(ENVMAP_ASSET_FILE_FORMATS)).not.toHaveProperty('image/jxl');
+    expect(getFileFormatInfoFromMimeTypeAndFileName('image/jxl', 'studio.jxl', FileFormat)).toBeUndefined();
   });
 
   it('recognizes IES files as photometric lights', () => {

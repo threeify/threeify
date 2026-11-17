@@ -36,7 +36,6 @@ const FILE_FORMAT_DEFINITIONS = {
     alternativeExtensions: ['.igs'],
     alternativeMimeTypes: ['/application/iges'],
   },
-  jxl: { name: 'JPEG XL (JXL)', mimeType: 'image/jxl', extension: '.jxl' },
   jpg: { name: 'JPEG', mimeType: 'image/jpeg', extension: '.jpg', alternativeExtensions: ['.jpeg'] },
   mtlx: {
     name: 'MaterialX (MTLX.ZIP)',
@@ -102,7 +101,7 @@ export function getFileFormatInfos(formats: readonly FileFormat[]): FileFormatIn
 
 export const MODEL_ASSET_FILE_FORMATS = ['glb', 'usdz', 'blend', 'fbx'] as const satisfies readonly FileFormat[];
 export const IMAGE_ASSET_FILE_FORMATS = ['jpg', 'png', 'webp'] as const satisfies readonly FileFormat[];
-export const ENVMAP_ASSET_FILE_FORMATS = ['hdr', 'exr', 'jxl'] as const satisfies readonly FileFormat[];
+export const ENVMAP_ASSET_FILE_FORMATS = ['hdr', 'exr'] as const satisfies readonly FileFormat[];
 export const CAD_ASSET_FILE_FORMATS = ['fcstd', 'iges', 'step'] as const satisfies readonly FileFormat[];
 export const MATERIAL_ASSET_FILE_FORMATS = ['mtlx'] as const satisfies readonly FileFormat[];
 export const LIGHT_ASSET_FILE_FORMATS = ['ies'] as const satisfies readonly FileFormat[];
