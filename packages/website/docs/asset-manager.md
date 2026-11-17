@@ -59,7 +59,7 @@ All installed files live in the project's gitignored `asset_cache/`. Native file
 
 ## Load assets in an application
 
-The runtime maps binding names to URLs before the first load. Use `assets.url('chair')` to obtain a URL and pass it to any loader. Binding names do not need a `loa:` prefix.
+The runtime maps binding names to URLs before the first load. Use `assets.url('chair')` to obtain a URL and pass it to any loader. Binding names do not need a `loa:` prefix. `loaResolver` always returns a promise and takes an in-memory map (`{ resolution }`). Your application supplies the map; the resolver does not fetch it.
 
 ### Vite and three.js
 
@@ -92,10 +92,10 @@ Then resolve the binding name before passing its URL to a loader:
 
 ```ts
 import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
-import { createLoaResolver } from '@landofassets/runtime';
+import { loaResolver } from '@landofassets/runtime';
 import resolution from 'virtual:loa';
 
-const assets = createLoaResolver({ resolution });
+const assets = await loaResolver({ resolution });
 new GLTFLoader().load(assets.url('chair'), (gltf) => scene.add(gltf.scene));
 ```
 
@@ -113,12 +113,15 @@ Only this URL-modifier form requires `loa:`. The modifier receives every loader 
 
 ### Without Vite
 
-Use [`loa resolve`](./cli/loa-resolve.md) to export `asset-resolution.json`. It prefers locally installed files where present and remote URLs otherwise. Serve the map with your application, then load it before creating loaders:
+Use [`loa resolve`](./cli/loa-resolve.md) to export `asset-resolution.json`. It prefers locally installed files where present and remote URLs otherwise. Serve the map with your application, then fetch and parse it before creating the resolver. Your application controls the request, caching, and error handling:
 
 ```ts
-import { loadLoaResolver } from '@landofassets/runtime';
+import { loaResolver } from '@landofassets/runtime';
 
-const assets = await loadLoaResolver('/asset-resolution.json');
+const response = await fetch('/asset-resolution.json');
+if (!response.ok) throw new Error(`Could not load asset map: HTTP ${response.status}`);
+const resolution = await response.json();
+const assets = await loaResolver({ resolution });
 const chairUrl = assets.url('chair');
 ```
 
