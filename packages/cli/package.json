@@ -11,13 +11,13 @@
   ],
   "homepage": "https://threeify.com",
   "bugs": {
-    "url": "https://github.com/drivecore/threeify/issues"
+    "url": "https://github.com/threeify/threeify/issues"
   },
   "license": "MIT",
   "author": "Threeify <support@threeify.com>",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/drivecore/threeify.git",
+    "url": "git+https://github.com/threeify/threeify.git",
     "directory": "packages/cli"
   },
   "bin": {
