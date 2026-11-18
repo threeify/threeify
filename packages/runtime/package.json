@@ -1,7 +1,7 @@
 {
   "name": "@landofassets/runtime",
   "version": "1.5.0",
-  "description": "Runtime asset resolution and Vite integration for Land of Assets",
+  "description": "Runtime asset resolution and Vite integration for Threeify",
   "license": "MIT",
   "repository": {
     "type": "git",

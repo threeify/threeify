@@ -1,6 +1,6 @@
 # @landofassets/sdk
 
-Official SDK for the [Land of Assets](https://landofassets.com) REST API.
+Official SDK for the [Threeify](https://threeify.com) REST API.
 
 ## Installation
 
@@ -22,7 +22,7 @@ import { createSecretTokenInstance, listAssets, getAsset } from '@landofassets/s
 const orgName = 'my-org';
 const projectName = 'my-project';
 
-// Create a client instance (host defaults to https://api.landofassets.com)
+// Create a client instance (host defaults to https://api.threeify.com)
 const client = createSecretTokenInstance({
   secretToken: 'your-api-token',
 });
@@ -44,7 +44,7 @@ const asset = await getAsset(client, {
 - Full TypeScript support with complete type definitions
 - Zod schema validation for requests and responses
 - Axios-based HTTP client with automatic error handling
-- Support for all Land of Assets API endpoints:
+- Support for all Threeify API endpoints:
   - Assets and asset versions
   - Organizations and projects
   - Users and authentication
@@ -127,14 +127,14 @@ import {
 } from '@landofassets/sdk';
 
 // Most common: API token authentication
-// host defaults to 'https://api.landofassets.com' if not provided
+// host defaults to 'https://api.threeify.com' if not provided
 const client = createSecretTokenInstance({
   secretToken: 'your-api-token',
-  // host: 'https://api.landofassets.com', // Optional, defaults to production API
+  // host: 'https://api.threeify.com', // Optional, defaults to production API
 });
 ```
 
-**Note:** For normal users, you typically don't need to specify the `host` parameter as it defaults to `https://api.landofassets.com`. Only internal developers may need to override this for testing against different environments.
+**Note:** For normal users, you typically don't need to specify the `host` parameter as it defaults to `https://api.threeify.com`. Only internal developers may need to override this for testing against different environments.
 
 ### Available Functions
 

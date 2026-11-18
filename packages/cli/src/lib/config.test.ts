@@ -33,7 +33,7 @@ describe('config', () => {
     });
 
     // get() should return default config without env vars
-    expect(config.host).toBe('https://api.landofassets.com');
+    expect(config.host).toBe('https://api.threeify.com');
     expect(config.auth).toBeUndefined();
   });
 

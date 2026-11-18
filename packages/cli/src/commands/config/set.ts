@@ -19,7 +19,7 @@ export const command = defineCommand({
       })
       .option('host', {
         type: 'string',
-        description: 'API host URL (defaults to https://api.landofassets.com)',
+        description: 'API host URL (defaults to https://api.threeify.com)',
       }),
   handler: async (argv) => {
     // Validate: cannot set project without org

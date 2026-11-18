@@ -75,7 +75,7 @@ node scripts/benchmark-assets.mjs /path/to/fixture 8
 
 The runner downloads public production originals and deletes its isolated cache afterward. It does not use or prune your usual store. Disk allocation savings depend on clone support; these timings alone do not prove an exact physical storage ratio.
 
-A production HEAD check of `robotexpressive@1.0.0` also confirmed HTTP 302 with `public, max-age=60` at the API URL, followed by HTTP 200 from `content.landofassets.com` with `public, max-age=31536000, immutable`.
+A production HEAD check of `robotexpressive@1.0.0` also confirmed HTTP 302 with `public, max-age=60` at the API URL, followed by HTTP 200 from `content.threeify.com` with `public, max-age=31536000, immutable`.
 
 ## Validation and adoption
 

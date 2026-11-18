@@ -24,5 +24,5 @@ export type Config = {
 export async function getConfig(deps: Pick<CliDeps, 'persistentConfig' | 'envVars'>): Promise<Config> {
   const globalConfig = await deps.persistentConfig.get();
   const envConfig = getEnvConfig(deps.envVars);
-  return { host: 'https://api.landofassets.com', ...globalConfig, ...envConfig };
+  return { host: 'https://api.threeify.com', ...globalConfig, ...envConfig };
 }

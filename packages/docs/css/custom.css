@@ -1,4 +1,4 @@
-/* Tokens copied from the landofassets.com dashboard (packages/dashboard/src/styles/app.css). */
+/* Tokens copied from the threeify.com dashboard (packages/dashboard/src/styles/app.css). */
 :root {
   --ifm-color-primary: #173f9b;
   --ifm-color-primary-dark: #15398c;
@@ -58,7 +58,7 @@ h3 {
   letter-spacing: -0.025em;
 }
 
-/* Match the landofassets.com header logo and wordmark. */
+/* Match the threeify.com header logo and wordmark. */
 .navbar__logo {
   height: 2rem;
   margin-right: 0.5rem;

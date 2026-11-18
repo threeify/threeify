@@ -10,7 +10,7 @@ export const assetManagerDocs: DocumentOverrides = {
         'The manifest key is a binding name. Use `--as` to choose an alias; otherwise native assets use their canonical ref as the key. A canonical key supports a bare version selector, for example `"acme/furniture/chair": "2.3.0"`. An alias uses the full source, for example `"chair": "acme/furniture/chair@2.3.0"`. The CLI writes shorthand for canonical bindings, while lockfiles always retain full source refs.',
         'Every HTTP(S) source is a direct, unverified URL, even if hosted by a LoA service or containing `@version`. Adding a URL does not fetch it or use the global store. Local paths become live `file:` references relative to the declaring manifest; they are not hashed, copied, or adopted into the registry.',
         'Run this command inside the workspace whose manifest should own the binding. All workspace aliases share one runtime namespace, so duplicates across manifests are rejected.',
-        'Native references use `LOA_HOST` or the configured host, defaulting to `https://api.landofassets.com`. The lockfile preserves the resolved host, so changing the environment does not redirect an existing locked asset. Native consumption uses anonymous requests.',
+        'Native references use `LOA_HOST` or the configured host, defaulting to `https://api.threeify.com`. The lockfile preserves the resolved host, so changing the environment does not redirect an existing locked asset. Native consumption uses anonymous requests.',
       ].join('\n\n'),
       examples: [
         { title: 'Add a native version with a local alias', content: 'loa add acme/furniture/chair@2.3.0 --as chair' },
