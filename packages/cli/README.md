@@ -1,6 +1,6 @@
 # @landofassets/cli
 
-Command-line interface for the [Land of Assets](https://landofassets.com) platform.
+Command-line interface for the [Threeify](https://threeify.com) platform.
 
 ## Installation
 
@@ -193,7 +193,7 @@ loa health                 # Check API health status
 
 The CLI stores configuration in `~/.config/loa/config.json`. Available settings:
 
-- `host` - API base URL (default: `https://api.landofassets.com`, typically doesn't need to be set)
+- `host` - API base URL (default: `https://api.threeify.com`, typically doesn't need to be set)
 - `output` - Output format: `json`, `yaml`, or `csv` (default: `json`)
 
 ### Default Organization and Project

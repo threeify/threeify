@@ -5,7 +5,7 @@ import { getCliDeps } from '../../lib/deps.ts';
 
 export const command = defineCommand({
   command: 'login',
-  describe: 'Authenticate with the Land of Assets platform',
+  describe: 'Authenticate with the Threeify platform',
   builder: (yargs) =>
     yargs.options({
       token: {

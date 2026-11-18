@@ -326,7 +326,7 @@ describe('config commands', () => {
 
         // and the defaults should be restored when getting the full config
         const fullConfig = await getConfig(deps);
-        expect(fullConfig.host).toBe('https://api.landofassets.com');
+        expect(fullConfig.host).toBe('https://api.threeify.com');
         expect(fullConfig.org).toBe('test-org');
         expect(fullConfig.project).toBeUndefined();
       });
@@ -347,7 +347,7 @@ describe('config commands', () => {
 
         // and the defaults should be restored when getting the full config
         const fullConfig = await getConfig(deps);
-        expect(fullConfig.host).toBe('https://api.landofassets.com');
+        expect(fullConfig.host).toBe('https://api.threeify.com');
         expect(fullConfig.org).toBeUndefined();
         expect(fullConfig.project).toBeUndefined();
       });

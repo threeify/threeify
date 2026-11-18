@@ -1,8 +1,8 @@
-# Land of Assets — public modules
+# Threeify — public modules
 
-This repository holds the public, open-source modules of [Land of Assets](https://landofassets.com): the TypeScript SDK, the `loa` command-line tool, and the asset runtime. Use them to manage asset selections, load assets in applications, and integrate with the Land of Assets REST API from scripts and pipelines.
+This repository holds the public, open-source modules of [Threeify](https://threeify.com): the TypeScript SDK, the `loa` command-line tool, and the asset runtime. Use them to manage asset selections, load assets in applications, and integrate with the Threeify REST API from scripts and pipelines.
 
-The Land of Assets platform itself is closed source. These modules are developed in the open so that integrating is easy, and so you can fix or improve them yourself. **Public pull requests are welcome.**
+The Threeify platform itself is closed source. These modules are developed in the open so that integrating is easy, and so you can fix or improve them yourself. **Public pull requests are welcome.**
 
 | Package                                     | npm                                                                                                               | Description                               |
 | ------------------------------------------- | ----------------------------------------------------------------------------------------------------------------- | ----------------------------------------- |
@@ -62,7 +62,7 @@ pnpm lint
 pnpm test
 ```
 
-The CLI talks to `https://api.landofassets.com` by default. Use `loa config set --host <url>` or the `LOA_HOST` environment variable to point it elsewhere.
+The CLI talks to `https://api.threeify.com` by default. Use `loa config set --host <url>` or the `LOA_HOST` environment variable to point it elsewhere.
 
 ## Contributing
 

@@ -23,11 +23,11 @@ const hex = createHash('sha256').update(bytes).digest('hex');
 const native: NativeAsset = {
   kind: 'loa',
   specifier: 'acme/models/chair@1.0.0',
-  host: 'https://api.landofassets.com',
+  host: 'https://api.threeify.com',
   ref: 'acme/models/chair',
   version: '1.0.0',
   hash: `sha256-${Buffer.from(hex, 'hex').toString('base64')}`,
-  remoteUrl: `https://api.landofassets.com/files/${hex}`,
+  remoteUrl: `https://api.threeify.com/files/${hex}`,
   extension: '.glb',
 };
 function lock(): Lockfile {

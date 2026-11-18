@@ -53,7 +53,7 @@ const assets = await listAssets(client, {
     title: 'Call it from any language',
     body: 'Plain HTTPS and JSON, authenticated with a bearer API token.',
     code: `curl -H "Authorization: Bearer $LOA_TOKEN" \\
-  https://api.landofassets.com/assets/my-org/my-project`,
+  https://api.threeify.com/assets/my-org/my-project`,
     to: '/api',
     link: 'REST API reference',
   },
@@ -63,11 +63,11 @@ export default function Home() {
   return (
     <Layout
       title="Developer docs"
-      description="Automate Land of Assets with the loa CLI, the TypeScript SDK, or the REST API."
+      description="Automate Threeify with the loa CLI, the TypeScript SDK, or the REST API."
     >
       <header className={styles.hero}>
         <div className={styles.heroInner}>
-          <p className={styles.kicker}>LAND OF ASSETS DEVELOPER DOCS</p>
+          <p className={styles.kicker}>THREEIFY DEVELOPER DOCS</p>
           <h1>
             Automate your 3D asset pipeline.
             <br />
@@ -75,11 +75,11 @@ export default function Home() {
           </h1>
           <p className={styles.lead}>
             Keep asset versions with your code, then upload, convert, and deliver models, materials, and environments.
-            Create an API token in the <a href="https://landofassets.com">Land of Assets dashboard</a>, pick the tool
-            that fits your workflow, and you are a few lines from your first asset.
+            Create an API token in the <a href="https://threeify.com">Threeify dashboard</a>, pick the tool that fits
+            your workflow, and you are a few lines from your first asset.
           </p>
           <div className={styles.actions}>
-            <Link className={styles.primary} href="https://landofassets.com/signup">
+            <Link className={styles.primary} href="https://threeify.com/signup">
               Create Account <span aria-hidden="true">→</span>
             </Link>
             <Link className={styles.secondary} to="/asset-manager">

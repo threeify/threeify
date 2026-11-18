@@ -44,7 +44,7 @@ vi.mock('yargs-file-commands', async (importOriginal) => ({
 }));
 
 let deps: CliDeps;
-const host = 'https://api-preview.landofassets.com';
+const host = 'https://api-preview.threeify.com';
 
 beforeEach(() => {
   vi.clearAllMocks();

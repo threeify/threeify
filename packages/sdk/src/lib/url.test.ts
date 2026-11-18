@@ -5,7 +5,7 @@ describe('validateUrl', () => {
   it('should return true for valid URLs', () => {
     expect(validateUrl('https://example.com')).toBe(true);
     expect(validateUrl('http://localhost:8080/callback')).toBe(true);
-    expect(validateUrl('https://api.landofassets.com')).toBe(true);
+    expect(validateUrl('https://api.threeify.com')).toBe(true);
   });
 
   it('should return false for invalid URLs', () => {

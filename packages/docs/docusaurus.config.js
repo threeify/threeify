@@ -1,8 +1,8 @@
 const clidocPlugin = require('@clidoc/docusaurus');
 
 module.exports = {
-  title: 'Land of Assets Docs',
-  tagline: 'CLI, SDK, and REST API reference for Land of Assets.',
+  title: 'Threeify Docs',
+  tagline: 'CLI, SDK, and REST API reference for Threeify.',
   favicon: 'img/logo.svg',
   url: process.env.SITE_URL ?? 'https://docs.landofassets.com',
   baseUrl: process.env.BASE_URL ?? '/',
@@ -24,9 +24,7 @@ module.exports = {
       'redocusaurus',
       {
         // The production API serves its OpenAPI document; it is fetched and rendered at build time.
-        specs: [
-          { id: 'api', spec: process.env.OPENAPI_URL ?? 'https://api.landofassets.com/docs/json', route: '/api' },
-        ],
+        specs: [{ id: 'api', spec: process.env.OPENAPI_URL ?? 'https://api.threeify.com/docs/json', route: '/api' }],
         theme: { primaryColor: '#173f9b' },
       },
     ],
@@ -35,20 +33,20 @@ module.exports = {
   themeConfig: {
     colorMode: { respectPrefersColorScheme: true },
     navbar: {
-      title: 'Land of Assets',
-      logo: { alt: 'Land of Assets', src: 'img/logo.png', height: 32, width: 32 },
+      title: 'Threeify',
+      logo: { alt: 'Threeify', src: 'img/logo.png', height: 32, width: 32 },
       items: [
         { to: '/asset-manager', label: 'Asset manager', position: 'left' },
         { to: '/cli', label: 'CLI', position: 'left' },
         { to: '/sdk', label: 'SDK', position: 'left' },
         { to: '/api', label: 'REST API', position: 'left' },
-        { href: 'https://landofassets.com', label: 'Land of Assets', position: 'right' },
+        { href: 'https://threeify.com', label: 'Threeify', position: 'right' },
         { href: 'https://github.com/drivecore/loa', label: 'GitHub', position: 'right' },
       ],
     },
     footer: {
       style: 'light',
-      copyright: `Copyright © ${new Date().getFullYear()} <a href="https://landofassets.com">Land of Assets</a> · SDK and CLI are MIT licensed`,
+      copyright: `Copyright © ${new Date().getFullYear()} <a href="https://threeify.com">Threeify</a> · SDK and CLI are MIT licensed`,
     },
   },
 };

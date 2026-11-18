@@ -1,7 +1,7 @@
 {
   "name": "@landofassets/cli",
   "version": "1.5.0",
-  "description": "CLI tool for Land of Assets platform",
+  "description": "CLI tool for Threeify platform",
   "keywords": [
     "3d",
     "assets",
@@ -9,12 +9,12 @@
     "command-line",
     "land-of-assets"
   ],
-  "homepage": "https://landofassets.com",
+  "homepage": "https://threeify.com",
   "bugs": {
     "url": "https://github.com/drivecore/loa/issues"
   },
   "license": "MIT",
-  "author": "Land of Assets <support@landofassets.com>",
+  "author": "Threeify <support@threeify.com>",
   "repository": {
     "type": "git",
     "url": "git+https://github.com/drivecore/loa.git",
