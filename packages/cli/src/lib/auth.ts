@@ -1,11 +1,11 @@
 import crypto from 'node:crypto';
 import http from 'node:http';
 import { URL } from 'node:url';
-import { createSecretTokenInstance, createSessionInstance, exchangeAuthorizationCode, listOrgs } from '@threeify/sdk';
+import { createSecretTokenInstance, exchangeAuthorizationCode, refreshAccessToken } from '@threeify/sdk';
 import * as Sentry from '@sentry/node';
 import chalk from 'chalk';
 import open from 'open';
-import type { Config } from './config.ts';
+import { type Config, getConfig } from './config.ts';
 import type { CliDeps } from './deps.ts';
 
 /**
@@ -248,6 +248,7 @@ export async function loginWithBrowser(host: string, deps: CliDeps): Promise<voi
     globalConfig.auth = {
       type: 'session',
       token: tokenResult.refresh_token,
+      loggedInAt: new Date().toISOString(),
     };
     globalConfig.host = host;
     await deps.persistentConfig.set(globalConfig);
@@ -282,6 +283,7 @@ export async function loginWithToken(host: string, token: string, deps: CliDeps)
   config.auth = {
     type: 'secretToken',
     token,
+    loggedInAt: new Date().toISOString(),
   };
   config.host = host;
   await deps.persistentConfig.set(config);
@@ -296,7 +298,7 @@ export async function loginWithToken(host: string, token: string, deps: CliDeps)
  * Get current authentication status
  */
 export async function getAuthStatus(host: string, deps: CliDeps): Promise<void> {
-  const config = await deps.persistentConfig.get();
+  const config = await getConfig(deps);
   const auth = config.auth;
 
   if (!auth) {
@@ -305,27 +307,20 @@ export async function getAuthStatus(host: string, deps: CliDeps): Promise<void> 
   }
 
   deps.logger.info(chalk.blue('Authentication Status:'));
+  deps.logger.info(`  Host: ${host}`);
   deps.logger.info(`  Type: ${auth.type}`);
-  if (auth.user) {
-    deps.logger.info(`  User: ${auth.user.name} (${auth.user.email})`);
-  }
 
-  // Test token validity by making a simple API call
-  if (auth.type === 'session') {
-    const sessionClient = createSessionInstance({
-      host,
-      userSessionToken: auth.token,
-    });
-    // Test with a simple authenticated call - list orgs requires auth
-    await listOrgs(sessionClient, { query: { pageSize: 1 } });
-  } else if (auth.type === 'secretToken') {
-    const secretClient = createSecretTokenInstance({
-      host,
-      secretToken: auth.token,
-    });
-    // Test with a simple authenticated call
-    await listOrgs(secretClient, { query: { pageSize: 1 } });
+  // Validate the actual credential and get its lifetime, rather than the short-lived access token's expiry.
+  const { auth: credential } = await refreshAccessToken(host, { body: { refreshToken: auth.token } }, true);
+  deps.logger.info(`  Username: ${credential?.username ?? 'Unknown (server does not provide login details)'}`);
+  const loggedInAt = auth.type === 'session' ? (credential?.createdAt ?? auth.loggedInAt) : auth.loggedInAt;
+  deps.logger.info(`  Logged in: ${loggedInAt ? new Date(loggedInAt).toISOString() : 'Unknown'}`);
+  if (auth.type === 'secretToken' && credential) {
+    deps.logger.info(`  Token created: ${new Date(credential.createdAt).toISOString()}`);
   }
+  deps.logger.info(
+    `  Expires: ${credential ? (credential.expiresAt === null ? 'Never' : new Date(credential.expiresAt).toISOString()) : 'Unknown (server does not provide login details)'}`,
+  );
 
   deps.logger.info(chalk.green('Token is valid'));
 }
