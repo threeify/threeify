@@ -6,7 +6,7 @@ module.exports = {
   favicon: 'img/logo.svg',
   url: process.env.SITE_URL ?? 'https://docs.landofassets.com',
   baseUrl: process.env.BASE_URL ?? '/',
-  organizationName: 'drivecore',
+  organizationName: 'threeify',
   projectName: 'threeify',
   onBrokenLinks: 'throw',
   markdown: { format: 'md' },
@@ -41,7 +41,7 @@ module.exports = {
         { to: '/sdk', label: 'SDK', position: 'left' },
         { to: '/api', label: 'REST API', position: 'left' },
         { href: 'https://threeify.com', label: 'Threeify', position: 'right' },
-        { href: 'https://github.com/drivecore/threeify', label: 'GitHub', position: 'right' },
+        { href: 'https://github.com/threeify/threeify', label: 'GitHub', position: 'right' },
       ],
     },
     footer: {

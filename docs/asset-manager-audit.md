@@ -1,6 +1,6 @@
 # Asset manager motivation audit
 
-Audited November 17, 2026 against LoA `731f3742ccb5` and the changes accompanying issue #52. Server evidence is from `drivecore/threeify-services` at `6e40f328f8db13675285e5a615db023d8f529464`. This is a source and functional audit, not a production SLA, browser rendering benchmark, or validation of personal history.
+Audited November 17, 2026 against LoA `731f3742ccb5` and the changes accompanying issue #52. Server evidence is from `threeify/threeify-services` at `6e40f328f8db13675285e5a615db023d8f529464`. This is a source and functional audit, not a production SLA, browser rendering benchmark, or validation of personal history.
 
 ## Claims in the essay
 
