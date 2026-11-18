@@ -10,8 +10,8 @@ import {
   assetParamsSchema,
   assetVersionSelectorSchema,
   assetVersionSchema,
-} from '@landofassets/sdk';
-import { parseLockfile, type Lockfile, type LockedAsset } from '@landofassets/runtime/node';
+} from '@threeify/sdk';
+import { parseLockfile, type Lockfile, type LockedAsset } from '@threeify/runtime/node';
 import type { ScheduleTask } from './task-queue.ts';
 
 export type Manifest = { name: string; assets: Record<string, string>; workspaces?: string[] };

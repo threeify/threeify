@@ -18,7 +18,7 @@ loa resolve --mode local`,
     kicker: 'CLI',
     title: 'Script it from your terminal',
     body: 'Upload, download, and manage assets from your shell or CI with the loa command.',
-    code: `npm install -g @landofassets/cli
+    code: `npm install -g @threeify/cli
 loa auth login
 
 loa assets create --file chair.glb \\
@@ -34,7 +34,7 @@ loa assets create --file chair.glb \\
     code: `import {
   createSecretTokenInstance,
   listAssets,
-} from '@landofassets/sdk';
+} from '@threeify/sdk';
 
 const client = createSecretTokenInstance({
   secretToken: process.env.LOA_TOKEN,

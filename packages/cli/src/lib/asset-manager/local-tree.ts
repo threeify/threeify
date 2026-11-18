@@ -1,7 +1,7 @@
 import { lstat, readFile, realpath, rm } from 'node:fs/promises';
 import { basename, dirname, isAbsolute, join, relative, resolve } from 'node:path';
 import glob from 'fast-glob';
-import type { Lockfile } from '@landofassets/runtime/node';
+import type { Lockfile } from '@threeify/runtime/node';
 
 type Entry = { path: string; directory: boolean };
 type Layout = { files: Set<string>; directories: Set<string>; protected: Set<string> };

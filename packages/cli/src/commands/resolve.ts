@@ -1,6 +1,6 @@
 import { join, resolve } from 'node:path';
 import { stat } from 'node:fs/promises';
-import { applyLocalOverrides, buildResolution, nativeHashHex, relativeAssetPath } from '@landofassets/runtime/node';
+import { applyLocalOverrides, buildResolution, nativeHashHex, relativeAssetPath } from '@threeify/runtime/node';
 import { defineCommand } from 'yargs-file-commands';
 import { atomicWrite, loadProject, resolveProject } from '../lib/asset-manager/project.ts';
 import { getConfig } from '../lib/config.ts';

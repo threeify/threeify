@@ -223,15 +223,15 @@ importers:
       '@clidoc/yargs':
         specifier: ^1.1.2
         version: 1.1.2
-      '@landofassets/runtime':
-        specifier: workspace:*
-        version: link:../runtime
-      '@landofassets/sdk':
-        specifier: workspace:*
-        version: link:../sdk
       '@sentry/node':
         specifier: ^10.22.0
         version: 10.78.0(@opentelemetry/core@2.12.0(@opentelemetry/api@1.9.1))(supports-color@7.2.0)
+      '@threeify/runtime':
+        specifier: workspace:*
+        version: link:../runtime
+      '@threeify/sdk':
+        specifier: workspace:*
+        version: link:../sdk
       chalk:
         specifier: ^5.3.0
         version: 5.6.2
@@ -270,37 +270,6 @@ importers:
         specifier: ^17.0.35
         version: 17.0.35
 
-  packages/runtime:
-    devDependencies:
-      '@types/node':
-        specifier: ^22.20.5
-        version: 22.20.5
-      vite:
-        specifier: ^8.3.5
-        version: 8.3.5(@types/node@22.20.5)(jiti@2.7.0)(terser@5.51.2)(yaml@2.9.1)
-
-  packages/sdk:
-    dependencies:
-      axios:
-        specifier: ^1.18.0
-        version: 1.21.0(debug@4.4.3(supports-color@7.2.0))(supports-color@7.2.0)
-      axios-eventsource:
-        specifier: ^0.2.1
-        version: 0.2.4(axios@1.21.0(debug@4.4.3(supports-color@7.2.0))(supports-color@7.2.0))(zod@4.6.7)
-      source-map-support:
-        specifier: ~0.5.21
-        version: 0.5.21
-      zod:
-        specifier: ^4.6.7
-        version: 4.6.7
-    devDependencies:
-      '@types/node':
-        specifier: ^22.20.5
-        version: 22.20.5
-      '@types/source-map-support':
-        specifier: ^0.5.10
-        version: 0.5.10
-
   packages/docs:
     dependencies:
       '@clidoc/docusaurus':
@@ -331,6 +300,37 @@ importers:
       typescript:
         specifier: ^6.0.3
         version: 6.0.3
+
+  packages/runtime:
+    devDependencies:
+      '@types/node':
+        specifier: ^22.20.5
+        version: 22.20.5
+      vite:
+        specifier: ^8.3.5
+        version: 8.3.5(@types/node@22.20.5)(jiti@2.7.0)(terser@5.51.2)(yaml@2.9.1)
+
+  packages/sdk:
+    dependencies:
+      axios:
+        specifier: ^1.18.0
+        version: 1.21.0(debug@4.4.3(supports-color@7.2.0))(supports-color@7.2.0)
+      axios-eventsource:
+        specifier: ^0.2.1
+        version: 0.2.4(axios@1.21.0(debug@4.4.3(supports-color@7.2.0))(supports-color@7.2.0))(zod@4.6.7)
+      source-map-support:
+        specifier: ~0.5.21
+        version: 0.5.21
+      zod:
+        specifier: ^4.6.7
+        version: 4.6.7
+    devDependencies:
+      '@types/node':
+        specifier: ^22.20.5
+        version: 22.20.5
+      '@types/source-map-support':
+        specifier: ^0.5.10
+        version: 0.5.10
 
 packages:
 

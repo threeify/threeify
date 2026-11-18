@@ -1,4 +1,4 @@
-import * as sdk from '@landofassets/sdk';
+import * as sdk from '@threeify/sdk';
 import { defineCommand } from 'yargs-file-commands';
 import { formatOption, getOrgOption, getProjectOptionalOption, paginationOption } from '../../lib/args.ts';
 import { createClient } from '../../lib/client.ts';

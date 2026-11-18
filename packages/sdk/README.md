@@ -1,15 +1,15 @@
-# @landofassets/sdk
+# @threeify/sdk
 
 Official SDK for the [Threeify](https://threeify.com) REST API.
 
 ## Installation
 
 ```bash
-npm install @landofassets/sdk
+npm install @threeify/sdk
 # or
-pnpm add @landofassets/sdk
+pnpm add @threeify/sdk
 # or
-yarn add @landofassets/sdk
+yarn add @threeify/sdk
 ```
 
 ## Quick Start
@@ -17,7 +17,7 @@ yarn add @landofassets/sdk
 The SDK uses a **functional approach** - all API operations are exported as standalone functions that take a client instance as their first parameter.
 
 ```typescript
-import { createSecretTokenInstance, listAssets, getAsset } from '@landofassets/sdk';
+import { createSecretTokenInstance, listAssets, getAsset } from '@threeify/sdk';
 
 const orgName = 'my-org';
 const projectName = 'my-project';
@@ -59,7 +59,7 @@ The SDK provides a simple helper function for uploading files. Here's a complete
 ```typescript
 import { readFile } from 'node:fs/promises';
 import { basename } from 'node:path';
-import { createSecretTokenInstance, uploadFile, createAsset } from '@landofassets/sdk';
+import { createSecretTokenInstance, uploadFile, createAsset } from '@threeify/sdk';
 
 const orgName = 'my-org';
 const projectName = 'my-project';
@@ -124,7 +124,7 @@ import {
   createFrontendTokenInstance, // For frontend tokens
   createSessionInstance, // For user sessions
   createAnonymousClient, // For anonymous access
-} from '@landofassets/sdk';
+} from '@threeify/sdk';
 
 // Most common: API token authentication
 // host defaults to 'https://api.threeify.com' if not provided
@@ -180,7 +180,7 @@ All functions follow the pattern: `functionName(client, props)` where `client` i
 The SDK exports Zod schemas for all API request and response types, enabling runtime validation:
 
 ```typescript
-import { assetSchema, createAssetBodySchema } from '@landofassets/sdk';
+import { assetSchema, createAssetBodySchema } from '@threeify/sdk';
 
 // Validate an asset object
 const validatedAsset = assetSchema.parse(assetData);

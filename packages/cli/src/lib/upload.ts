@@ -1,13 +1,13 @@
 import { readFile } from 'node:fs/promises';
 import { basename } from 'node:path';
-import type { ApiClient, Enums } from '@landofassets/sdk';
+import type { ApiClient, Enums } from '@threeify/sdk';
 import {
   createAsset,
   FileFormat,
   getAssetTypeFromFileFormat,
   getFileFormatInfoFromFileName,
   uploadFile,
-} from '@landofassets/sdk';
+} from '@threeify/sdk';
 
 export type CreateAssetFromUploadOptions = {
   orgName: string;

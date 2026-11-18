@@ -9,7 +9,7 @@ import {
   getFileFormatInfoFromFileName,
   FileFormat,
   uploadFile,
-} from '@landofassets/sdk';
+} from '@threeify/sdk';
 import { defineCommand } from 'yargs-file-commands';
 import { parseRef } from '../lib/asset-manager/project.ts';
 import { createClient } from '../lib/client.ts';

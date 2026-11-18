@@ -1,5 +1,5 @@
-import type { ApiClient } from '@landofassets/sdk';
-import { createAnonymousClient, createSecretTokenInstance, createSessionInstance } from '@landofassets/sdk';
+import type { ApiClient } from '@threeify/sdk';
+import { createAnonymousClient, createSecretTokenInstance, createSessionInstance } from '@threeify/sdk';
 import { getConfig } from './config.ts';
 import type { CliDeps } from './deps.ts';
 

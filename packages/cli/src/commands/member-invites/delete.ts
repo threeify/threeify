@@ -1,4 +1,4 @@
-import * as sdk from '@landofassets/sdk';
+import * as sdk from '@threeify/sdk';
 import { defineCommand } from 'yargs-file-commands';
 import { createClient } from '../../lib/client.ts';
 import { getCliDeps } from '../../lib/deps.ts';

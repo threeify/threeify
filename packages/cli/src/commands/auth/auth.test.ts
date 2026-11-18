@@ -17,8 +17,8 @@ vi.mock('../../lib/auth.ts', () => auth);
 vi.mock('../../lib/client.ts', () => ({
   createClientWithHost: () => ({ axios: { get: auth.healthRequest } }),
 }));
-vi.mock('@landofassets/sdk', async (importOriginal) => ({
-  ...(await importOriginal<typeof import('@landofassets/sdk')>()),
+vi.mock('@threeify/sdk', async (importOriginal) => ({
+  ...(await importOriginal<typeof import('@threeify/sdk')>()),
   deleteRefreshToken: auth.deleteRefreshToken,
 }));
 // Keep the real runCli parser and real command definitions; replace only filesystem discovery

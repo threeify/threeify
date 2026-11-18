@@ -1,5 +1,5 @@
 {
-  "name": "@landofassets/sdk",
+  "name": "@threeify/sdk",
   "version": "1.5.0",
   "description": "SDK for Threeify REST API",
   "keywords": [
@@ -11,13 +11,13 @@
   ],
   "homepage": "https://threeify.com",
   "bugs": {
-    "url": "https://github.com/drivecore/loa/issues"
+    "url": "https://github.com/drivecore/threeify/issues"
   },
   "license": "MIT",
   "author": "Threeify <support@threeify.com>",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/drivecore/loa.git",
+    "url": "git+https://github.com/drivecore/threeify.git",
     "directory": "packages/sdk"
   },
   "type": "module",

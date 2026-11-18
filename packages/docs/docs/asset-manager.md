@@ -17,7 +17,7 @@ Install assets locally and load them through ordinary URLs, without an adapter o
 Install the CLI, then [add an asset](./cli/loa-add.md) from your application's directory. Replace the example with a public asset you can access:
 
 ```sh
-npm install -g @landofassets/cli
+npm install -g @threeify/cli
 loa add acme/furniture/chair@2.3.0 --as chair
 ```
 
@@ -117,7 +117,7 @@ Use the optional runtime when you want cloud loading, automatic local/remote sel
 Install the runtime:
 
 ```sh
-npm install @landofassets/runtime
+npm install @threeify/runtime
 ```
 
 Use [`loa resolve`](./cli/loa-resolve.md) to export `asset-resolution.json`. It prefers locally installed files where present and remote URLs otherwise. The map associates each binding name with its resolved URL, for example:
@@ -132,7 +132,7 @@ Serve the map with your application, then fetch and parse it before creating the
 
 ```ts
 import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
-import { loaResolver } from '@landofassets/runtime';
+import { loaResolver } from '@threeify/runtime';
 
 const response = await fetch('/asset-resolution.json');
 if (!response.ok) throw new Error(`Could not load asset map: HTTP ${response.status}`);
@@ -162,7 +162,7 @@ The Vite plugin provides the resolution map through `virtual:loa`, so your appli
 
 ```ts
 import { defineConfig } from 'vite';
-import { loa } from '@landofassets/runtime/vite';
+import { loa } from '@threeify/runtime/vite';
 
 export default defineConfig({
   plugins: [loa()],
@@ -174,14 +174,14 @@ Use `remote` for cloud loading or `local` after installation to serve local file
 For TypeScript, include the virtual module declaration in your application's environment declarations:
 
 ```ts
-/// <reference types="@landofassets/runtime/virtual" />
+/// <reference types="@threeify/runtime/virtual" />
 ```
 
 Then resolve the binding name before passing its URL to a loader:
 
 ```ts
 import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
-import { loaResolver } from '@landofassets/runtime';
+import { loaResolver } from '@threeify/runtime';
 import resolution from 'virtual:loa';
 
 const assets = await loaResolver({ resolution });

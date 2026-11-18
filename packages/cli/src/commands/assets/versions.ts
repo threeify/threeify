@@ -1,7 +1,7 @@
 import { resolveAssetInput, withAssetInput } from '../../lib/asset-input.ts';
 import { logOutput } from '../../lib/output.ts';
 import { formatOption } from '../../lib/args.ts';
-import { listAssetVersions } from '@landofassets/sdk';
+import { listAssetVersions } from '@threeify/sdk';
 import { defineCommand } from 'yargs-file-commands';
 import { getOrgOption, getProjectOption } from '../../lib/args.ts';
 import { createClient } from '../../lib/client.ts';

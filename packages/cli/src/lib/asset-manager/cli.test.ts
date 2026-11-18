@@ -20,7 +20,7 @@ import { join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { promisify } from 'node:util';
 import { afterAll, afterEach, beforeAll, beforeEach, describe, expect, it } from 'vitest';
-import { nativeHashHex, relativeAssetPath, type NativeAsset, type UrlAsset } from '@landofassets/runtime/node';
+import { nativeHashHex, relativeAssetPath, type NativeAsset, type UrlAsset } from '@threeify/runtime/node';
 import { loadProject } from './project.ts';
 import { contentPath, pruneStore, pullAsset, registerProject, verifyStore } from './store.ts';
 

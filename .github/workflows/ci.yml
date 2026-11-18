@@ -75,4 +75,4 @@ jobs:
         run: |
           node dist/bin/loa.js --version
           node dist/bin/loa.js --help
-          node --input-type=module -e "const sdk = await import('@landofassets/sdk'); if (sdk.getFileNameExtension('a.mtlx.zip') !== '.mtlx.zip') process.exit(1);"
+          node --input-type=module -e "const sdk = await import('@threeify/sdk'); if (sdk.getFileNameExtension('a.mtlx.zip') !== '.mtlx.zip') process.exit(1);"

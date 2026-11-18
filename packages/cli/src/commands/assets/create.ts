@@ -1,5 +1,5 @@
 import { resolveAssetInput, withAssetInput } from '../../lib/asset-input.ts';
-import * as sdk from '@landofassets/sdk';
+import * as sdk from '@threeify/sdk';
 import { defineCommand } from 'yargs-file-commands';
 import {
   descriptionOption,

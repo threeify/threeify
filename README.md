@@ -4,11 +4,11 @@ This repository holds the public, open-source modules of [Threeify](https://thre
 
 The Threeify platform itself is closed source. These modules are developed in the open so that integrating is easy, and so you can fix or improve them yourself. **Public pull requests are welcome.**
 
-| Package                                     | npm                                                                                                               | Description                               |
-| ------------------------------------------- | ----------------------------------------------------------------------------------------------------------------- | ----------------------------------------- |
-| [`@landofassets/sdk`](packages/sdk)         | [![npm](https://img.shields.io/npm/v/@landofassets/sdk)](https://www.npmjs.com/package/@landofassets/sdk)         | Typed, functional client for the REST API |
-| [`@landofassets/cli`](packages/cli)         | [![npm](https://img.shields.io/npm/v/@landofassets/cli)](https://www.npmjs.com/package/@landofassets/cli)         | `loa` command-line interface              |
-| [`@landofassets/runtime`](packages/runtime) | [![npm](https://img.shields.io/npm/v/@landofassets/runtime)](https://www.npmjs.com/package/@landofassets/runtime) | Asset URL resolution and Vite integration |
+| Package                                 | npm                                                                                                       | Description                               |
+| --------------------------------------- | --------------------------------------------------------------------------------------------------------- | ----------------------------------------- |
+| [`@threeify/sdk`](packages/sdk)         | [![npm](https://img.shields.io/npm/v/@threeify/sdk)](https://www.npmjs.com/package/@threeify/sdk)         | Typed, functional client for the REST API |
+| [`@threeify/cli`](packages/cli)         | [![npm](https://img.shields.io/npm/v/@threeify/cli)](https://www.npmjs.com/package/@threeify/cli)         | `loa` command-line interface              |
+| [`@threeify/runtime`](packages/runtime) | [![npm](https://img.shields.io/npm/v/@threeify/runtime)](https://www.npmjs.com/package/@threeify/runtime) | Asset URL resolution and Vite integration |
 
 ## Asset manager
 
@@ -26,11 +26,11 @@ Read the [asset manager overview](packages/docs/docs/asset-manager.md) for the p
 ### SDK
 
 ```sh
-npm install @landofassets/sdk
+npm install @threeify/sdk
 ```
 
 ```ts
-import { createSecretTokenInstance, listAssets } from '@landofassets/sdk';
+import { createSecretTokenInstance, listAssets } from '@threeify/sdk';
 
 const client = createSecretTokenInstance({ secretToken: process.env.LOA_TOKEN! });
 const assets = await listAssets(client, { query: { orgName: 'my-org', projectName: 'my-project' } });
@@ -41,7 +41,7 @@ See the [SDK README](packages/sdk/README.md) for authentication options, uploads
 ### CLI
 
 ```sh
-npm install -g @landofassets/cli
+npm install -g @threeify/cli
 loa auth login
 loa assets list --org my-org --project my-project
 ```
@@ -71,3 +71,9 @@ Read [CONTRIBUTING.md](CONTRIBUTING.md) before opening a pull request. In short:
 ## License
 
 [MIT](LICENSE)
+
+## Package scope migration
+
+Packages are now named `@threeify/cli`, `@threeify/sdk`, and `@threeify/runtime`. Update package dependencies, TypeScript imports, runtime/Vite subpaths, and `compilerOptions.types` entries to the new scope. Install the CLI with `npm install -g @threeify/cli`. The `loa` and `three` commands, `LOA_*` variables, credentials, asset manifests, and lockfile formats are unchanged. Existing published packages are not removed or deprecated by this change.
+
+Before publishing, ensure the npm `threeify` scope is controlled by the project and the new public packages have trusted publishing configured for GitHub organization `drivecore`, repository `threeify`, workflow `release.yml`, and environment `npm`. Repository renames require checking these publisher bindings as well as package repository metadata. Use the established manually dispatched Release workflow; merging alone does not publish. See [npm trusted publishing](https://docs.npmjs.com/trusted-publishers/).

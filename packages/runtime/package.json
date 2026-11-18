@@ -1,11 +1,11 @@
 {
-  "name": "@landofassets/runtime",
+  "name": "@threeify/runtime",
   "version": "1.5.0",
   "description": "Runtime asset resolution and Vite integration for Threeify",
   "license": "MIT",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/drivecore/loa.git",
+    "url": "git+https://github.com/drivecore/threeify.git",
     "directory": "packages/runtime"
   },
   "files": [
