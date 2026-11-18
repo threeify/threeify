@@ -24,8 +24,8 @@ threeify auth login
 threeify assets create --file chair.glb \\
   --org my-org --project my-project \\
   --visibility PRIVATE`,
-    to: '/cli',
-    link: 'CLI reference',
+    to: '/cli-guide',
+    link: 'CLI guide',
   },
   {
     kicker: 'SDK',
@@ -45,8 +45,8 @@ const assets = await listAssets(client, {
     projectName: 'my-project',
   },
 });`,
-    to: '/sdk',
-    link: 'SDK reference',
+    to: '/sdk-guide',
+    link: 'SDK guide',
   },
   {
     kicker: 'REST API',

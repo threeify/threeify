@@ -48,9 +48,9 @@ See the [asset manager guide](https://docs.landofassets.com/asset-manager) for s
 
 ## Use it where you work
 
-- **Terminal and CI:** use the [CLI](packages/cli/README.md) to manage assets, uploads, downloads, and automation.
-- **TypeScript and Node.js:** call the REST API with the [SDK](packages/sdk/README.md).
-- **Browsers and Vite:** resolve aliases and bundle local assets with the [runtime](packages/runtime/README.md).
+- **Terminal and CI:** use the [CLI guide](https://docs.landofassets.com/cli-guide) to manage assets, uploads, downloads, and automation.
+- **TypeScript and Node.js:** call the REST API with the [SDK guide](https://docs.landofassets.com/sdk-guide).
+- **Browsers and Vite:** resolve aliases and bundle local assets with the [runtime guide](https://docs.landofassets.com/runtime-guide).
 - **Any language:** use the [REST API reference](https://docs.landofassets.com/api).
 
 ### Call the API from TypeScript
@@ -66,7 +66,7 @@ const client = createSecretTokenInstance({ secretToken: process.env.LOA_TOKEN! }
 const assets = await listAssets(client, { query: { orgName: 'my-org', projectName: 'my-project' } });
 ```
 
-Create an API token in the [Threeify dashboard](https://threeify.com). See the [SDK README](packages/sdk/README.md) for authentication, uploads, and the API surface.
+Create an API token in the [Threeify dashboard](https://threeify.com). Read the [SDK guide](https://docs.landofassets.com/sdk-guide) for authentication, uploads, and examples.
 
 ## Documentation
 
