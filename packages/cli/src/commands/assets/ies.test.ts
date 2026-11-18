@@ -10,7 +10,7 @@ import { promisify } from 'node:util';
 import type { Asset } from '@threeify/sdk';
 import { afterAll, afterEach, beforeAll, beforeEach, describe, expect, it } from 'vitest';
 
-const cli = fileURLToPath(new URL('../../../dist/bin/loa.js', import.meta.url));
+const cli = fileURLToPath(new URL('../../../dist/bin/threeify.js', import.meta.url));
 const source = Buffer.from('IESNA:LM-63-2002\n[MANUFAC] Example Lighting\nTILT=NONE\n');
 const asset: Asset = {
   id: 1,

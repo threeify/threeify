@@ -4,7 +4,7 @@
   "private": true,
   "homepage": "https://docs.landofassets.com",
   "scripts": {
-    "generate": "mkdir -p .generated && node ../cli/dist/bin/loa.js docgen --output .generated/loa.json && typedoc",
+    "generate": "mkdir -p .generated && node ../cli/dist/bin/threeify.js docgen --output .generated/threeify.json && typedoc",
     "dev": "pnpm generate && docusaurus start --port 4000",
     "docs:build": "pnpm generate && docusaurus build",
     "serve": "docusaurus serve --port 4000"

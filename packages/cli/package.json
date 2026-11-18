@@ -7,7 +7,7 @@
     "assets",
     "cli",
     "command-line",
-    "land-of-assets"
+    "threeify"
   ],
   "homepage": "https://threeify.com",
   "bugs": {
@@ -21,8 +21,7 @@
     "directory": "packages/cli"
   },
   "bin": {
-    "loa": "./dist/bin/loa.js",
-    "three": "./dist/bin/loa.js"
+    "threeify": "./dist/bin/threeify.js"
   },
   "type": "module",
   "main": "dist/index.js",

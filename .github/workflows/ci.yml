@@ -42,7 +42,7 @@ jobs:
             }
           done
       - name: Generate OpenCLI document
-        run: node packages/cli/dist/bin/loa.js docgen --output opencli.json
+        run: node packages/cli/dist/bin/threeify.js docgen --output opencli.json
       - name: Validate OpenCLI document
         uses: bhouston/clidoc-action@v1
         with:
@@ -73,6 +73,6 @@ jobs:
       - name: Smoke test
         working-directory: packages/cli
         run: |
-          node dist/bin/loa.js --version
-          node dist/bin/loa.js --help
+          node dist/bin/threeify.js --version
+          node dist/bin/threeify.js --help
           node --input-type=module -e "const sdk = await import('@threeify/sdk'); if (sdk.getFileNameExtension('a.mtlx.zip') !== '.mtlx.zip') process.exit(1);"

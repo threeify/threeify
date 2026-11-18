@@ -1,6 +1,6 @@
 name: Deploy docs to GitHub Pages
 
-# Builds docs.landofassets.com: CLI reference from `loa docgen`, SDK reference from TypeDoc,
+# Builds docs.landofassets.com: CLI reference from `threeify docgen`, SDK reference from TypeDoc,
 # and REST API reference from the production OpenAPI document. The scheduled run keeps the
 # API reference current when the API ships without a change here.
 on:

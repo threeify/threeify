@@ -29,7 +29,7 @@ module.exports = {
       },
     ],
   ],
-  plugins: [[clidocPlugin, { input: '.generated/loa.json', outputDir: 'docs/cli', basePath: '/cli' }]],
+  plugins: [[clidocPlugin, { input: '.generated/threeify.json', outputDir: 'docs/cli', basePath: '/cli' }]],
   themeConfig: {
     colorMode: { respectPrefersColorScheme: true },
     navbar: {
@@ -37,8 +37,23 @@ module.exports = {
       logo: { alt: 'Threeify', src: 'img/logo.png', height: 32, width: 32 },
       items: [
         { to: '/asset-manager', label: 'Asset manager', position: 'left' },
-        { to: '/cli', label: 'CLI', position: 'left' },
-        { to: '/sdk', label: 'SDK', position: 'left' },
+        {
+          label: 'CLI',
+          position: 'left',
+          items: [
+            { to: '/cli-guide', label: 'Guide' },
+            { to: '/cli', label: 'Command reference' },
+          ],
+        },
+        {
+          label: 'SDK',
+          position: 'left',
+          items: [
+            { to: '/sdk-guide', label: 'Guide' },
+            { to: '/sdk', label: 'API reference' },
+          ],
+        },
+        { to: '/runtime-guide', label: 'Runtime', position: 'left' },
         { to: '/api', label: 'REST API', position: 'left' },
         { href: 'https://threeify.com', label: 'Threeify', position: 'right' },
         { href: 'https://github.com/threeify/threeify', label: 'GitHub', position: 'right' },

@@ -42,7 +42,7 @@ export const command = defineCommand({
             throw error;
           }
           if (entry.kind === 'loa' && (await hashFileSha256(path)) !== nativeHashHex(entry.hash)) {
-            throw new Error(`Local asset integrity mismatch: ${path}; run loa pull to repair it`);
+            throw new Error(`Local asset integrity mismatch: ${path}; run threeify pull to repair it`);
           }
           map[alias] = local[alias]!;
         }

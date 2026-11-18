@@ -24,7 +24,7 @@ import { nativeHashHex, relativeAssetPath, type NativeAsset, type UrlAsset } fro
 import { loadProject } from './project.ts';
 import { contentPath, pruneStore, pullAsset, registerProject, verifyStore } from './store.ts';
 
-const executable = fileURLToPath(new URL('../../../dist/bin/loa.js', import.meta.url));
+const executable = fileURLToPath(new URL('../../../dist/bin/threeify.js', import.meta.url));
 const nativeBytes = Buffer.from('native immutable bytes');
 const oid = createHash('sha256').update(nativeBytes).digest('hex');
 let server: Server;

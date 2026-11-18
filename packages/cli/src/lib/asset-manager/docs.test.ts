@@ -7,7 +7,7 @@ import { promisify } from 'node:util';
 import { generatePages, parse } from '@clidoc/core';
 import { expect, it } from 'vitest';
 
-const executable = fileURLToPath(new URL('../../../dist/bin/loa.js', import.meta.url));
+const executable = fileURLToPath(new URL('../../../dist/bin/threeify.js', import.meta.url));
 
 it('generates validated command references with authored prose, examples, and discovered flags', async () => {
   const root = await mkdtemp(join(tmpdir(), 'loa-docgen-'));
@@ -31,20 +31,20 @@ it('generates validated command references with authored prose, examples, and di
       'store status',
       'store prune',
     ]) {
-      const command = document.commands![`loa ${name}`]!;
+      const command = document.commands![`threeify ${name}`]!;
       expect(command.description).toBeTruthy();
       expect(command.examples?.length).toBeGreaterThan(0);
-      const page = pages.find((candidate) => candidate.title === `loa ${name}`)!;
+      const page = pages.find((candidate) => candidate.title === `threeify ${name}`)!;
       expect(page.content).toContain(command.description);
       for (const example of command.examples!) expect(page.content).toContain(example.content);
     }
-    expect(document.commands!['loa pull']!.flags).toEqual(
+    expect(document.commands!['threeify pull']!.flags).toEqual(
       expect.arrayContaining([expect.objectContaining({ name: 'frozen-lockfile', type: 'boolean', default: false })]),
     );
-    expect(document.commands!['loa publish']!.flags).toEqual(
+    expect(document.commands!['threeify publish']!.flags).toEqual(
       expect.arrayContaining([expect.objectContaining({ name: 'version', required: true })]),
     );
-    expect(document.commands!['loa resolve']!.flags).toEqual(
+    expect(document.commands!['threeify resolve']!.flags).toEqual(
       expect.arrayContaining([expect.objectContaining({ name: 'mode', default: 'auto' })]),
     );
   } finally {

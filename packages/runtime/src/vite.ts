@@ -15,7 +15,7 @@ import type { LockedAsset, Lockfile, ResolveMode } from './types.js';
 import type { Plugin } from 'vite';
 
 export type LoaPluginOptions = {
-  /** Default: auto (installed files first, remote otherwise). Local mode requires loa pull for native and URL sources. */
+  /** Default: auto (installed files first, remote otherwise). Local mode requires threeify pull for native and URL sources. */
   mode?: ResolveMode;
   /** Project root; defaults to Vite's root. */
   root?: string;
@@ -32,12 +32,12 @@ async function readAsset(path: string, entry: LockedAsset): Promise<Buffer> {
   try {
     bytes = await readFile(path);
   } catch (error) {
-    throw new Error(`Cannot read LoA asset ${path}${entry.kind === 'file' ? '' : '; run loa pull first'}`, {
+    throw new Error(`Cannot read LoA asset ${path}${entry.kind === 'file' ? '' : '; run threeify pull first'}`, {
       cause: error,
     });
   }
   if (entry.kind === 'loa' && createHash('sha256').update(bytes).digest('hex') !== nativeHashHex(entry.hash)) {
-    throw new Error(`LoA asset integrity mismatch: ${path}; run loa pull to repair it`);
+    throw new Error(`LoA asset integrity mismatch: ${path}; run threeify pull to repair it`);
   }
   return bytes;
 }
