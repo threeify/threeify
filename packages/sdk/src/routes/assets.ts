@@ -7,7 +7,6 @@ import { Enums } from '../lib/enums.js';
 import type { SortingFromFields } from '../lib/list.js';
 import { createSortingOptionalSchema, listResultSchema, paginationOptionalSchema } from '../lib/list.js';
 import {
-  aiUsageSchema,
   assetNameSchema,
   assetParamsSchema,
   assetReferenceParamsSchema,
@@ -240,7 +239,6 @@ export const assetSchema = z.object({
   description: z.string(),
   keywords: z.string(),
   shareLicense: z.enum(Enums.ShareLicense),
-  aiUsage: aiUsageSchema,
   commentMode: z.enum(Enums.CommentMode),
   reported: z.boolean(),
   likeCount: z.int(),
@@ -341,7 +339,6 @@ export const createAssetBodySchema = z.strictObject({
   uploadToken: z.string().describe('The upload token from prepareAssetUpload'),
   visibility: assetVisibilitySchema.describe('Visibility level: PUBLIC (anyone can view) or PRIVATE (members only)'),
   shareLicense: z.enum(Enums.ShareLicense).describe('The license for sharing the asset'),
-  aiUsage: aiUsageSchema.optional().describe('Optional AI usage policy'),
   commentMode: z.enum(Enums.CommentMode).optional().describe('Comment mode: ENABLED (default), MEMBERS_ONLY, or NONE'),
   metadata: z.string().max(10_240).optional().describe('Optional metadata as a string (max 10240 characters)'),
 });
@@ -440,7 +437,6 @@ export const updateAssetBodySchema = z.strictObject({
   keywords: z.string().max(10_240).optional().describe('Optional keywords of the asset'),
   visibility: assetVisibilitySchema.optional().describe('Optional visibility of the asset'),
   shareLicense: z.enum(Enums.ShareLicense).optional().describe('Optional share license of the asset'),
-  aiUsage: aiUsageSchema.optional().describe('Optional AI usage policy of the asset'),
   commentMode: z.enum(Enums.CommentMode).optional().describe('Optional comment mode: ENABLED, MEMBERS_ONLY, or NONE'),
   projectName: projectNameSchema
     .optional()

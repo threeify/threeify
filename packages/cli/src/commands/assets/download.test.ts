@@ -38,7 +38,6 @@ beforeAll(async () => {
           description: '',
           keywords: '',
           shareLicense: Enums.ShareLicense[0],
-          aiUsage: Enums.AiUsage[0],
           commentMode: 'ENABLED',
           reported: false,
           likeCount: 0,

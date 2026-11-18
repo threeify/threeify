@@ -8,7 +8,6 @@ export const nullableDescriptionSchema = z.string().nullable().describe('The nul
 
 export const visibilitySchema = z.enum(Enums.Visibility).describe('The visibility of the entity');
 export const assetVisibilitySchema = z.enum(Enums.AssetVisibility).describe('The visibility of the asset');
-export const aiUsageSchema = z.enum(Enums.AiUsage).describe('The AI usage policy of the asset');
 
 export const commentTextSchema = z.string().min(1).max(10_240).describe('The text of the comment');
 
