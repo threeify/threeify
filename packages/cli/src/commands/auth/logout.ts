@@ -1,4 +1,4 @@
-import { createSessionInstance, deleteRefreshToken } from '@landofassets/sdk';
+import { createSessionInstance, deleteRefreshToken } from '@threeify/sdk';
 import * as Sentry from '@sentry/node';
 import { defineCommand } from 'yargs-file-commands';
 import { getConfig } from '../../lib/config.ts';

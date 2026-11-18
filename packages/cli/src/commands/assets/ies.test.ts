@@ -7,7 +7,7 @@ import { join } from 'node:path';
 import { buffer } from 'node:stream/consumers';
 import { fileURLToPath } from 'node:url';
 import { promisify } from 'node:util';
-import type { Asset } from '@landofassets/sdk';
+import type { Asset } from '@threeify/sdk';
 import { afterAll, afterEach, beforeAll, beforeEach, describe, expect, it } from 'vitest';
 
 const cli = fileURLToPath(new URL('../../../dist/bin/loa.js', import.meta.url));

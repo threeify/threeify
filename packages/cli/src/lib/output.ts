@@ -1,4 +1,4 @@
-import type { ListResult } from '@landofassets/sdk';
+import type { ListResult } from '@threeify/sdk';
 import * as yaml from 'js-yaml';
 import type { FormatType } from './args.ts';
 import type { Logger } from './logger.ts';

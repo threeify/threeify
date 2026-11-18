@@ -1,12 +1,7 @@
 import crypto from 'node:crypto';
 import http from 'node:http';
 import { URL } from 'node:url';
-import {
-  createSecretTokenInstance,
-  createSessionInstance,
-  exchangeAuthorizationCode,
-  listOrgs,
-} from '@landofassets/sdk';
+import { createSecretTokenInstance, createSessionInstance, exchangeAuthorizationCode, listOrgs } from '@threeify/sdk';
 import * as Sentry from '@sentry/node';
 import chalk from 'chalk';
 import open from 'open';

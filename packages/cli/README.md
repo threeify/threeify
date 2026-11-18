@@ -1,15 +1,15 @@
-# @landofassets/cli
+# @threeify/cli
 
 Command-line interface for the [Threeify](https://threeify.com) platform.
 
 ## Installation
 
 ```bash
-npm install -g @landofassets/cli
+npm install -g @threeify/cli
 # or
-pnpm add -g @landofassets/cli
+pnpm add -g @threeify/cli
 # or
-yarn global add @landofassets/cli
+yarn global add @threeify/cli
 ```
 
 Both `loa` and `three` run the same CLI and share configuration and credentials.
@@ -64,7 +64,7 @@ Native refs are hash-verified and downloaded into a global store, then linked di
 
 Ignore `assets/` and generated `asset-resolution.json`; commit the manifest and lockfile. Only native assets have reproducible verified bytes. External URLs and live files remain mutable even with `--frozen-lockfile`.
 
-Use `@landofassets/runtime` to resolve aliases in an application and `@landofassets/runtime/vite` to serve or bundle local assets. The [asset manager overview](../docs/docs/asset-manager.md) covers runtime integration, workspaces, deployment modes, and the source model.
+Use `@threeify/runtime` to resolve aliases in an application and `@threeify/runtime/vite` to serve or bundle local assets. The [asset manager overview](../docs/docs/asset-manager.md) covers runtime integration, workspaces, deployment modes, and the source model.
 
 ## Commands
 

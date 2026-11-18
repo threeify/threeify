@@ -1,8 +1,8 @@
 import { resolveAssetInput, withAssetInput } from '../../lib/asset-input.ts';
-import { getAsset, formatAssetReference } from '@landofassets/sdk';
+import { getAsset, formatAssetReference } from '@threeify/sdk';
 import { writeFile } from 'node:fs/promises';
 import type { Readable } from 'node:stream';
-import { getMedia, getMediaOriginalUrl, startMediaTask, waitForTaskCompletion } from '@landofassets/sdk';
+import { getMedia, getMediaOriginalUrl, startMediaTask, waitForTaskCompletion } from '@threeify/sdk';
 import { defineCommand } from 'yargs-file-commands';
 import { getOrgOption, getProjectOption } from '../../lib/args.ts';
 import { createClient } from '../../lib/client.ts';

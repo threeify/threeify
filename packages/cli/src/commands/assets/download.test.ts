@@ -6,7 +6,7 @@ import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { promisify } from 'node:util';
-import { Enums } from '@landofassets/sdk';
+import { Enums } from '@threeify/sdk';
 import { afterAll, afterEach, beforeAll, beforeEach, describe, expect, it } from 'vitest';
 
 const cli = fileURLToPath(new URL('../../../dist/bin/loa.js', import.meta.url));

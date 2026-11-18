@@ -7,7 +7,7 @@ const packages = ['packages/runtime', 'packages/sdk', 'packages/cli'];
 
 export default {
   branches: ['main'],
-  repositoryUrl: 'https://github.com/drivecore/loa.git',
+  repositoryUrl: 'https://github.com/drivecore/threeify.git',
   tagFormat: 'v${version}',
   plugins: [
     ['@semantic-release/commit-analyzer', { preset: 'conventionalcommits' }],

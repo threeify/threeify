@@ -1,6 +1,6 @@
 import { readFile } from 'node:fs/promises';
 import { join } from 'node:path';
-import { assetInstallPaths, assetSourceKey, relativeAssetPath, type LockedAsset } from '@landofassets/runtime/node';
+import { assetInstallPaths, assetSourceKey, relativeAssetPath, type LockedAsset } from '@threeify/runtime/node';
 import { atomicWrite, ignoreLocalAssets, resolveProject, saveProject, type Project } from './project.ts';
 import {
   cacheNativeAsset,

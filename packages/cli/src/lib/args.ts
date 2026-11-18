@@ -1,5 +1,5 @@
 import { cpus } from 'node:os';
-import * as sdk from '@landofassets/sdk';
+import * as sdk from '@threeify/sdk';
 import { getOrg, getProject } from './config-defaults.ts';
 
 /**

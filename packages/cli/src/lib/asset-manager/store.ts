@@ -6,7 +6,7 @@ import { homedir, platform } from 'node:os';
 import { dirname, join, resolve, relative } from 'node:path';
 import { Readable, Transform } from 'node:stream';
 import { pipeline } from 'node:stream/promises';
-import { nativeHashHex, relativeAssetPath, type LockedAsset, type NativeAsset } from '@landofassets/runtime/node';
+import { nativeHashHex, relativeAssetPath, type LockedAsset, type NativeAsset } from '@threeify/runtime/node';
 import { hashFileSha256 } from '../hash.ts';
 
 export function storePath(env: NodeJS.ProcessEnv = process.env): string {
@@ -221,7 +221,7 @@ export async function verifyStore(store: string): Promise<{ checked: number; cor
 }
 
 export async function pruneStore(store: string): Promise<number> {
-  const { parseLockfile } = await import('@landofassets/runtime/node');
+  const { parseLockfile } = await import('@threeify/runtime/node');
   const keep = new Set<string>();
   const directory = join(store, 'v1', 'projects');
   if (await exists(directory)) {

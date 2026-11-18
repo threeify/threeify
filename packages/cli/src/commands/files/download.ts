@@ -1,6 +1,6 @@
 import { open, rm } from 'node:fs/promises';
 import { pipeline } from 'node:stream/promises';
-import { createAnonymousClient, fileParamsSchema, getFile } from '@landofassets/sdk';
+import { createAnonymousClient, fileParamsSchema, getFile } from '@threeify/sdk';
 import { defineCommand } from 'yargs-file-commands';
 import { getConfig } from '../../lib/config.ts';
 import { getCliDeps } from '../../lib/deps.ts';

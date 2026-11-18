@@ -1,5 +1,5 @@
 {
-  "name": "@landofassets/cli",
+  "name": "@threeify/cli",
   "version": "1.5.0",
   "description": "CLI tool for Threeify platform",
   "keywords": [
@@ -11,13 +11,13 @@
   ],
   "homepage": "https://threeify.com",
   "bugs": {
-    "url": "https://github.com/drivecore/loa/issues"
+    "url": "https://github.com/drivecore/threeify/issues"
   },
   "license": "MIT",
   "author": "Threeify <support@threeify.com>",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/drivecore/loa.git",
+    "url": "git+https://github.com/drivecore/threeify.git",
     "directory": "packages/cli"
   },
   "bin": {
@@ -38,9 +38,9 @@
   "dependencies": {
     "@clidoc/core": "^1.1.2",
     "@clidoc/yargs": "^1.1.2",
-    "@landofassets/runtime": "workspace:*",
-    "@landofassets/sdk": "workspace:*",
     "@sentry/node": "^10.22.0",
+    "@threeify/runtime": "workspace:*",
+    "@threeify/sdk": "workspace:*",
     "chalk": "^5.3.0",
     "fast-glob": "^3.3.3",
     "js-yaml": "^4.1.1",

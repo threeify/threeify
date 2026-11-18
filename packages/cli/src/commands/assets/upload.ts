@@ -3,7 +3,7 @@ import { logOutput } from '../../lib/output.ts';
 import { formatOption } from '../../lib/args.ts';
 import { readFile } from 'node:fs/promises';
 import { basename } from 'node:path';
-import { createAssetVersion, uploadFile } from '@landofassets/sdk';
+import { createAssetVersion, uploadFile } from '@threeify/sdk';
 import { defineCommand } from 'yargs-file-commands';
 import { getOrgOption, getProjectOption } from '../../lib/args.ts';
 import { createClient } from '../../lib/client.ts';

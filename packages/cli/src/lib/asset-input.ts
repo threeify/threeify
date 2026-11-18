@@ -1,4 +1,4 @@
-import { assetNameSchema, assetVersionSchema, mediaVersionSchema } from '@landofassets/sdk';
+import { assetNameSchema, assetVersionSchema, mediaVersionSchema } from '@threeify/sdk';
 import type { Argv } from 'yargs';
 
 type AssetInput = { assetReference?: string; asset?: string; version?: string };
