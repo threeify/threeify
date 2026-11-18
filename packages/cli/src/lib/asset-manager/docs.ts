@@ -20,7 +20,8 @@ export const assetManagerDocs: DocumentOverrides = {
         { title: 'Use the canonical ref as the binding name', content: 'threeify add acme/furniture/chair@2.3.0' },
         {
           title: 'Add a direct URL or live local file',
-          content: 'threeify add https://example.com/downlight.ies --as downlight\nloa add ../brand/logo.png --as logo',
+          content:
+            'threeify add https://example.com/downlight.ies --as downlight\nthreeify add ../brand/logo.png --as logo',
         },
       ],
     },
@@ -78,7 +79,7 @@ export const assetManagerDocs: DocumentOverrides = {
         {
           title: 'Publish, then select the new version',
           content:
-            'threeify auth login\nloa publish ./chair.glb --to acme/furniture/chair --version 3.0.0\nloa add acme/furniture/chair@3.0.0 --as chair',
+            'threeify auth login\nthreeify publish ./chair.glb --to acme/furniture/chair --version 3.0.0\nthreeify add acme/furniture/chair@3.0.0 --as chair',
         },
       ],
     },

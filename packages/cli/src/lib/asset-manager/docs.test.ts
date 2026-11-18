@@ -36,7 +36,10 @@ it('generates validated command references with authored prose, examples, and di
       expect(command.examples?.length).toBeGreaterThan(0);
       const page = pages.find((candidate) => candidate.title === `threeify ${name}`)!;
       expect(page.content).toContain(command.description);
-      for (const example of command.examples!) expect(page.content).toContain(example.content);
+      for (const example of command.examples!) {
+        expect(page.content).toContain(example.content);
+        expect(example.content).not.toMatch(/(?:^|\n)\s*(?:loa|three)\s/);
+      }
     }
     expect(document.commands!['threeify pull']!.flags).toEqual(
       expect.arrayContaining([expect.objectContaining({ name: 'frozen-lockfile', type: 'boolean', default: false })]),
