@@ -1,5 +1,11 @@
 # @threeify/sdk
 
+<p align="center">
+  <a href="https://www.npmjs.com/package/@threeify/sdk"><img src="https://img.shields.io/npm/v/@threeify/sdk.svg" alt="@threeify/sdk version on npm"></a>
+  <a href="https://docs.landofassets.com/sdk"><img src="https://img.shields.io/badge/docs-read-blue?style=flat" alt="documentation"></a>
+  <a href="https://discord.gg/mrags8WyuH"><img src="https://img.shields.io/badge/chat-discord-blue?style=flat&logo=discord" alt="Discord community"></a>
+</p>
+
 Official SDK for the [Threeify](https://threeify.com) REST API.
 
 ## Installation

@@ -8,20 +8,20 @@ const paths = [
     kicker: 'ASSET MANAGER',
     title: 'Keep asset selections with your code',
     body: 'Pin immutable asset versions in Git, load from the cloud, or pull once for local development and offline builds.',
-    code: `loa add acme/furniture/chair@2.3.0 --as chair
-loa pull
-loa resolve --mode local`,
+    code: `threeify add acme/furniture/chair@2.3.0 --as chair
+threeify pull
+threeify resolve --mode local`,
     to: '/asset-manager',
     link: 'Asset manager overview',
   },
   {
     kicker: 'CLI',
     title: 'Script it from your terminal',
-    body: 'Upload, download, and manage assets from your shell or CI with the loa command.',
+    body: 'Upload, download, and manage assets from your shell or CI with the threeify command.',
     code: `npm install -g @threeify/cli
-loa auth login
+threeify auth login
 
-loa assets create --file chair.glb \\
+threeify assets create --file chair.glb \\
   --org my-org --project my-project \\
   --visibility PRIVATE`,
     to: '/cli',
@@ -63,7 +63,7 @@ export default function Home() {
   return (
     <Layout
       title="Developer docs"
-      description="Automate Threeify with the loa CLI, the TypeScript SDK, or the REST API."
+      description="Automate Threeify with the threeify CLI, the TypeScript SDK, or the REST API."
     >
       <header className={styles.hero}>
         <div className={styles.heroInner}>

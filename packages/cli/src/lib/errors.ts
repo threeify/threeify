@@ -40,7 +40,7 @@ export function formatError(error: unknown): string {
         typeof trace === 'string' && /^[a-f0-9]{32}(?:\/\d+)?(?:;o=[01])?$/.test(trace)
           ? trace.split('/')[0]?.split(';')[0]
           : undefined;
-      return `Token refresh failed${status ? ` (HTTP ${status})` : ''}.${traceId ? ` Trace ID: ${traceId}.` : ''} ${status === 401 ? 'Please run "loa auth login" to authenticate.' : 'Please try again later.'}`;
+      return `Token refresh failed${status ? ` (HTTP ${status})` : ''}.${traceId ? ` Trace ID: ${traceId}.` : ''} ${status === 401 ? 'Please run "threeify auth login" to authenticate.' : 'Please try again later.'}`;
     }
 
     // Extract error message from response data if available
@@ -52,9 +52,9 @@ export function formatError(error: unknown): string {
     // Provide user-friendly messages for common HTTP status codes
     if (status === 401) {
       if (errorMessage) {
-        return `${errorMessage}. Please run "loa auth login" to authenticate.`;
+        return `${errorMessage}. Please run "threeify auth login" to authenticate.`;
       }
-      return 'Authentication required. Please run "loa auth login" to authenticate.';
+      return 'Authentication required. Please run "threeify auth login" to authenticate.';
     }
     if (status === 403) {
       return errorMessage || 'Access forbidden. You do not have permission to perform this action.';

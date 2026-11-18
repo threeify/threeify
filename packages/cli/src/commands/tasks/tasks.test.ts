@@ -17,7 +17,7 @@ async function runCli(args: string[], deps: CliDeps): Promise<void> {
   try {
     await mkdir(join(home, '.config', 'loa'), { recursive: true });
     await writeFile(join(home, '.config', 'loa', 'config.json'), JSON.stringify(await deps.persistentConfig.get()));
-    const { stdout } = await promisify(execFile)(process.execPath, ['packages/cli/dist/bin/loa.js', ...args], {
+    const { stdout } = await promisify(execFile)(process.execPath, ['packages/cli/dist/bin/threeify.js', ...args], {
       env: {
         ...process.env,
         HOME: home,

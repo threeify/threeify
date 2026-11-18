@@ -10,7 +10,7 @@ import { afterAll, afterEach, beforeAll, beforeEach, describe, expect, it } from
 
 const oid = 'a'.repeat(64);
 const bytes = Buffer.from([0, 1, 2, 127, 128, 254, 255]);
-const cli = fileURLToPath(new URL('../../../dist/bin/loa.js', import.meta.url));
+const cli = fileURLToPath(new URL('../../../dist/bin/threeify.js', import.meta.url));
 let server: Server;
 let host: string;
 let home: string;

@@ -9,7 +9,7 @@ import { promisify } from 'node:util';
 import { Enums } from '@threeify/sdk';
 import { afterAll, afterEach, beforeAll, beforeEach, describe, expect, it } from 'vitest';
 
-const cli = fileURLToPath(new URL('../../../dist/bin/loa.js', import.meta.url));
+const cli = fileURLToPath(new URL('../../../dist/bin/threeify.js', import.meta.url));
 const bytes = Buffer.from('original bytes from bucket');
 let server: Server;
 let host: string;

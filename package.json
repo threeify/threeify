@@ -13,9 +13,9 @@
     "format": "oxfmt .",
     "lint": "oxlint --type-aware --type-check packages/*/src",
     "lint:fix": "oxlint --type-aware --type-check --fix packages/*/src",
-    "loa": "node packages/cli/dist/bin/loa.js",
     "release": "semantic-release",
-    "docs:build": "pnpm build && pnpm --filter @threeify/docs docs:build"
+    "docs:build": "pnpm build && pnpm --filter @threeify/docs docs:build",
+    "threeify": "node packages/cli/dist/bin/threeify.js"
   },
   "devDependencies": {
     "@anolilab/semantic-release-pnpm": "^8.1.29",

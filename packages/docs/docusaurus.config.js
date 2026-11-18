@@ -29,7 +29,7 @@ module.exports = {
       },
     ],
   ],
-  plugins: [[clidocPlugin, { input: '.generated/loa.json', outputDir: 'docs/cli', basePath: '/cli' }]],
+  plugins: [[clidocPlugin, { input: '.generated/threeify.json', outputDir: 'docs/cli', basePath: '/cli' }]],
   themeConfig: {
     colorMode: { respectPrefersColorScheme: true },
     navbar: {

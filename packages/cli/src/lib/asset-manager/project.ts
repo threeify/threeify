@@ -155,7 +155,7 @@ export async function loadProject(cwd = process.cwd(), create = false): Promise<
   }
   const nearest = ancestors[0];
   if (!nearest) {
-    if (!create) throw new Error('No assets.json found. Run loa add to initialize this project.');
+    if (!create) throw new Error('No assets.json found. Run threeify add to initialize this project.');
     const root = resolve(cwd);
     return { root, current: '.', manifests: { '.': { name: basename(root), assets: {} } } };
   }

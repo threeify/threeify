@@ -23,7 +23,7 @@ it('omits untrusted diagnostics and malformed trace headers', () => {
 
 it('keeps authentication guidance for rejected refresh credentials', () => {
   expect(formatError(refreshError(401))).toBe(
-    'Token refresh failed (HTTP 401). Please run "loa auth login" to authenticate.',
+    'Token refresh failed (HTTP 401). Please run "threeify auth login" to authenticate.',
   );
 });
 

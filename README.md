@@ -1,29 +1,59 @@
-# Threeify — public modules
+<p align="center">
+  <a href="https://threeify.com">
+    <img alt="Threeify logo" src="https://raw.githubusercontent.com/threeify/threeify/main/packages/docs/static/img/logo.png" height="96">
+  </a>
+</p>
 
-This repository holds the public, open-source modules of [Threeify](https://threeify.com): the TypeScript SDK, the `loa` command-line tool, and the asset runtime. Use them to manage asset selections, load assets in applications, and integrate with the Threeify REST API from scripts and pipelines.
+<p align="center">
+  <a href="https://docs.landofassets.com"><img src="https://img.shields.io/badge/docs-read-blue?style=flat" alt="documentation"></a>
+  <a href="https://discord.gg/mrags8WyuH"><img src="https://img.shields.io/badge/chat-discord-blue?style=flat&logo=discord" alt="Discord community"></a>
+</p>
 
-The Threeify platform itself is closed source. These modules are developed in the open so that integrating is easy, and so you can fix or improve them yourself. **Public pull requests are welcome.**
+# Threeify
 
-| Package                                 | npm                                                                                                       | Description                               |
-| --------------------------------------- | --------------------------------------------------------------------------------------------------------- | ----------------------------------------- |
-| [`@threeify/sdk`](packages/sdk)         | [![npm](https://img.shields.io/npm/v/@threeify/sdk)](https://www.npmjs.com/package/@threeify/sdk)         | Typed, functional client for the REST API |
-| [`@threeify/cli`](packages/cli)         | [![npm](https://img.shields.io/npm/v/@threeify/cli)](https://www.npmjs.com/package/@threeify/cli)         | `loa` command-line interface              |
-| [`@threeify/runtime`](packages/runtime) | [![npm](https://img.shields.io/npm/v/@threeify/runtime)](https://www.npmjs.com/package/@threeify/runtime) | Asset URL resolution and Vite integration |
+> Manage, version, and deliver 3D assets from your terminal, scripts, and applications.
 
-## Asset manager
+These are the public, open-source modules for [Threeify](https://threeify.com): the `threeify` CLI, TypeScript SDK, and asset runtime. Upload and convert source files, keep asset selections in Git, and load the same assets remotely or from a local checkout.
 
-The `loa` CLI keeps asset selections in Git with `assets.json` and `assets-lock.json`. Native LoA versions have verified hashes and share a global download store; HTTP(S) URLs use a project-local cache when pulled, and `file:` references stay live. Load remotely or pull the same selections for offline use.
+The hosted platform is closed source. These modules are developed in the open, and public pull requests are welcome.
+
+## Packages
+
+| Package                                 | Version on npm                                                                                                            | Description                               |
+| --------------------------------------- | ------------------------------------------------------------------------------------------------------------------------- | ----------------------------------------- |
+| [`@threeify/cli`](packages/cli)         | [![CLI version](https://img.shields.io/npm/v/@threeify/cli.svg)](https://www.npmjs.com/package/@threeify/cli)             | The `threeify` command-line interface     |
+| [`@threeify/sdk`](packages/sdk)         | [![SDK version](https://img.shields.io/npm/v/@threeify/sdk.svg)](https://www.npmjs.com/package/@threeify/sdk)             | Typed client for the REST API             |
+| [`@threeify/runtime`](packages/runtime) | [![Runtime version](https://img.shields.io/npm/v/@threeify/runtime.svg)](https://www.npmjs.com/package/@threeify/runtime) | Asset URL resolution and Vite integration |
+
+## Get started
+
+Install the CLI with Node.js 22.12 or newer:
 
 ```sh
-loa add acme/furniture/chair@2.3.0 --as chair
-loa pull
+npm install -g @threeify/cli
+threeify --version
+threeify auth login
 ```
 
-Read the [asset manager overview](packages/docs/docs/asset-manager.md) for the philosophy, source rules, workspaces, publication, and runtime integration.
+Select a versioned asset, give it a local alias, and download your selections:
 
-## Quick start
+```sh
+threeify add acme/furniture/chair@2.3.0 --as chair
+threeify pull
+```
 
-### SDK
+The CLI records selections in `assets.json` and `assets-lock.json`. Commit those files alongside your application code. Native asset versions have verified hashes and share a global download store; HTTP(S) downloads use a project-local cache, and `file:` references remain live.
+
+See the [asset manager guide](https://docs.landofassets.com/asset-manager) for source formats, workspaces, publication, and runtime integration. Run `threeify --help` for the command reference.
+
+## Use it where you work
+
+- **Terminal and CI:** use the [CLI](packages/cli/README.md) to manage assets, uploads, downloads, and automation.
+- **TypeScript and Node.js:** call the REST API with the [SDK](packages/sdk/README.md).
+- **Browsers and Vite:** resolve aliases and bundle local assets with the [runtime](packages/runtime/README.md).
+- **Any language:** use the [REST API reference](https://docs.landofassets.com/api).
+
+### Call the API from TypeScript
 
 ```sh
 npm install @threeify/sdk
@@ -36,44 +66,44 @@ const client = createSecretTokenInstance({ secretToken: process.env.LOA_TOKEN! }
 const assets = await listAssets(client, { query: { orgName: 'my-org', projectName: 'my-project' } });
 ```
 
-See the [SDK README](packages/sdk/README.md) for authentication options, uploads, and the full API surface.
+Create an API token in the [Threeify dashboard](https://threeify.com). See the [SDK README](packages/sdk/README.md) for authentication, uploads, and the API surface.
 
-### CLI
+## Documentation
 
-```sh
-npm install -g @threeify/cli
-loa auth login
-loa assets list --org my-org --project my-project
-```
+Read the [developer documentation](https://docs.landofassets.com), [CLI reference](https://docs.landofassets.com/cli), [SDK reference](https://docs.landofassets.com/sdk), and [asset manager guide](https://docs.landofassets.com/asset-manager). Ask questions in the [Threeify Discord](https://discord.gg/mrags8WyuH).
 
-You can also use `three` in place of `loa`, including the shortcuts `three login` and `three logout`. `three install` is an alias for `three pull`. Both executable names share configuration and credentials.
-
-See the [CLI README](packages/cli/README.md) for every command, or run `loa --help`.
-
-The packages require Node.js 22.12 or newer.
+The CLI uses `https://api.threeify.com` by default. Set a different endpoint with `threeify config set --host <url>` or `LOA_HOST`.
 
 ## Development
 
+Use the Node.js and pnpm versions pinned in `.nvmrc` and `package.json`.
+
 ```sh
-pnpm install
+pnpm install --frozen-lockfile
 pnpm build
 pnpm tsc
 pnpm lint
 pnpm test
 ```
 
-The CLI talks to `https://api.threeify.com` by default. Use `loa config set --host <url>` or the `LOA_HOST` environment variable to point it elsewhere.
+Run the built CLI with `pnpm threeify --help`.
 
-## Contributing
+## Releases and migration
 
-Read [CONTRIBUTING.md](CONTRIBUTING.md) before opening a pull request. In short: open an issue, branch from `main`, use Conventional Commits, and make sure the local checks pass. Releases to npm are cut by the maintainers from `main`.
+See [CONTRIBUTING.md](CONTRIBUTING.md) for the release workflow and [GitHub Releases](https://github.com/threeify/threeify/releases) for changes. Merging to `main` does not publish packages.
+
+Packages use the `@threeify` scope, and the installed executable is `threeify`. Update dependencies, TypeScript imports, runtime/Vite subpaths, and `compilerOptions.types` entries to that scope. Existing `LOA_*` variables, credentials, asset manifests, cache locations, runtime APIs, and lockfile formats are unchanged. Earlier published versions are not removed or deprecated by this change.
+
+Trusted publishing is configured per package for GitHub organization `threeify`, repository `threeify`, workflow `release.yml`, and environment `npm`. See [npm trusted publishing](https://docs.npmjs.com/trusted-publishers/).
+
+## Contribution
+
+See the [contributing guide](CONTRIBUTING.md) for issues, pull requests, checks, and release conventions.
 
 ## License
 
-[MIT](LICENSE)
+MIT. See [LICENSE](LICENSE).
 
-## Package scope migration
+## Author
 
-Packages are now named `@threeify/cli`, `@threeify/sdk`, and `@threeify/runtime`. Update package dependencies, TypeScript imports, runtime/Vite subpaths, and `compilerOptions.types` entries to the new scope. Install the CLI with `npm install -g @threeify/cli`. The `loa` and `three` commands, `LOA_*` variables, credentials, asset manifests, and lockfile formats are unchanged. Existing published packages are not removed or deprecated by this change.
-
-Before publishing, ensure the npm `threeify` scope is controlled by the project and the new public packages have trusted publishing configured for GitHub organization `threeify`, repository `threeify`, workflow `release.yml`, and environment `npm`. Repository renames require checking these publisher bindings as well as package repository metadata. Use the established manually dispatched Release workflow; merging alone does not publish. See [npm trusted publishing](https://docs.npmjs.com/trusted-publishers/).
+[Ben Houston](https://ben3d.ca), building [Threeify](https://threeify.com).

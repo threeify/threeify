@@ -18,7 +18,7 @@ if (
 }
 const temporary = await mkdtemp(join(tmpdir(), 'loa-benchmark-'));
 const store = join(temporary, 'store');
-const cli = fileURLToPath(new URL('../packages/cli/dist/bin/loa.js', import.meta.url));
+const cli = fileURLToPath(new URL('../packages/cli/dist/bin/threeify.js', import.meta.url));
 const samples = [];
 const prepare = async (name) => {
   const directory = join(temporary, name);

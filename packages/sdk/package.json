@@ -6,8 +6,8 @@
     "3d",
     "api",
     "assets",
-    "land-of-assets",
-    "sdk"
+    "sdk",
+    "threeify"
   ],
   "homepage": "https://threeify.com",
   "bugs": {
