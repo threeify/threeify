@@ -120,3 +120,27 @@ describe('authentication status', () => {
     expect(Date.parse(saved.auth!.loggedInAt!)).toBeLessThanOrEqual(Date.now());
   });
 });
+
+describe('login callback port', () => {
+  it('skips occupied ports and listens on the next free one', async () => {
+    const { createServer } = await import('node:http');
+    const { listenOnFreePort } = await import('./auth.ts');
+    const actualPort = (server: import('node:http').Server) =>
+      (server.address() as import('node:net').AddressInfo).port;
+    const busy = createServer();
+    await listenOnFreePort(busy, [0]);
+    const first = actualPort(busy);
+    const free = createServer();
+    try {
+      const probe = createServer();
+      await listenOnFreePort(probe, [0]);
+      const second = actualPort(probe);
+      await new Promise((done) => probe.close(done));
+      expect(await listenOnFreePort(free, [first, second])).toBe(second);
+      await expect(listenOnFreePort(createServer(), [first, second])).rejects.toThrow(/all in use/);
+    } finally {
+      busy.close();
+      free.close();
+    }
+  });
+});
