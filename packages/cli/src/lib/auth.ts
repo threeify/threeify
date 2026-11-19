@@ -47,11 +47,38 @@ function generateState(): string {
   return crypto.randomBytes(32).toString('base64url');
 }
 
+/** Preferred login callback ports: the long-standing default first, then two fallback ranges. */
+export const callbackPorts = [
+  ...Array.from({ length: 10 }, (_, index) => 8080 + index),
+  ...Array.from({ length: 10 }, (_, index) => 18080 + index),
+];
+
+/** Listen on the first port that is free, so another local server on 8080 does not block login. */
+export async function listenOnFreePort(server: http.Server, ports: number[]): Promise<number> {
+  for (const port of ports) {
+    const error = await new Promise<NodeJS.ErrnoException | undefined>((done) => {
+      server.once('error', done);
+      server.listen(port, () => {
+        server.off('error', done);
+        done(undefined);
+      });
+    });
+    if (!error) return port;
+    if (error.code !== 'EADDRINUSE' && error.code !== 'EACCES') throw error;
+  }
+  throw new Error(
+    `Could not start the login callback server: ports ${ports.join(', ')} are all in use. Free one of them, or use \`threeify login --token\`.`,
+  );
+}
+
 /**
  * Start a local HTTP server to receive the OAuth callback
  */
-function startCallbackServer(port: number): Promise<{ code: string; state: string }> {
-  return new Promise((resolve, reject) => {
+async function startCallbackServer(
+  ports: number[],
+): Promise<{ port: number; callback: Promise<{ code: string; state: string }> }> {
+  const { promise: callback, resolve, reject } = Promise.withResolvers<{ code: string; state: string }>();
+  {
     let timeoutId: NodeJS.Timeout | null = null;
     let isClosing = false;
 
@@ -62,7 +89,7 @@ function startCallbackServer(port: number): Promise<{ code: string; state: strin
         return;
       }
 
-      const url = new URL(req.url, `http://localhost:${port}`);
+      const url = new URL(req.url, 'http://localhost');
       const code = url.searchParams.get('code');
       const state = url.searchParams.get('state');
       const error = url.searchParams.get('error');
@@ -141,9 +168,7 @@ function startCallbackServer(port: number): Promise<{ code: string; state: strin
       }
     });
 
-    server.listen(port, () => {
-      // Server started successfully
-    });
+    const port = await listenOnFreePort(server, ports);
 
     server.on('error', (err) => {
       if (timeoutId) {
@@ -187,7 +212,8 @@ function startCallbackServer(port: number): Promise<{ code: string; state: strin
       },
       5 * 60 * 1000,
     );
-  });
+    return { port, callback };
+  }
 }
 
 /**
@@ -199,8 +225,13 @@ export async function loginWithBrowser(host: string, deps: CliDeps): Promise<voi
   try {
     // OAuth client configuration
     const clientId = 'land-of-assets-cli';
-    const redirectUri = 'http://localhost:8080/callback';
     const scope = 'api';
+
+    // Start the callback server first: the redirect URI depends on which port was free.
+    const { port, callback: callbackPromise } = await startCallbackServer(callbackPorts);
+    if (port !== callbackPorts[0])
+      deps.logger.info(`Port ${callbackPorts[0]} is in use; receiving the login callback on port ${port}.`);
+    const redirectUri = `http://localhost:${port}/callback`;
 
     // Generate PKCE parameters
     const { codeVerifier, codeChallenge } = generatePKCE();
@@ -216,10 +247,6 @@ export async function loginWithBrowser(host: string, deps: CliDeps): Promise<voi
     authorizeUrl.searchParams.set('state', state);
     authorizeUrl.searchParams.set('code_challenge', codeChallenge);
     authorizeUrl.searchParams.set('code_challenge_method', 'S256');
-
-    // Start callback server
-    const callbackPort = 8080;
-    const callbackPromise = startCallbackServer(callbackPort);
 
     // Open browser
     await open(authorizeUrl.toString());
