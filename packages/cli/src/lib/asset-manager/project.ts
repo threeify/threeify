@@ -106,9 +106,11 @@ function parseManifest(value: unknown): Manifest {
     value.dependencies = value.assets;
     delete value.assets;
   }
-  if (!object(value) || typeof value.name !== 'string' || !value.name.trim() || !object(value.dependencies)) {
-    throw new Error('assets.json requires a name and a dependencies object');
+  if (!object(value) || typeof value.name !== 'string' || !value.name.trim()) {
+    throw new Error('assets.json requires a name');
   }
+  // A manifest may hold only local or remote dependencies.
+  value.dependencies ??= {};
   const aliases = new Set<string>();
   for (const [key] of dependencyLists) {
     const list = value[key];
@@ -327,13 +329,12 @@ function assetLines(assets: Record<string, unknown>, indent: string): string {
 }
 
 export function serializeManifest(manifest: Manifest): string {
-  // `dependencies` is always written; the pinned lists only when they have bindings.
-  const lists = dependencyLists
-    .filter(([key]) => key === 'dependencies' || Object.keys(manifest[key] ?? {}).length)
-    .map(([key]) => {
-      const lines = assetLines(manifest[key] ?? {}, '    ');
-      return `  "${key}": {${lines ? `\n${lines}\n  ` : ''}}`;
-    });
+  // Only lists with bindings are written; an empty manifest keeps an empty `dependencies`.
+  const used = dependencyLists.filter(([key]) => Object.keys(manifest[key] ?? {}).length);
+  const lists = (used.length ? used : dependencyLists.slice(0, 1)).map(([key]) => {
+    const lines = assetLines(manifest[key] ?? {}, '    ');
+    return `  "${key}": {${lines ? `\n${lines}\n  ` : ''}}`;
+  });
   return `{\n  "name": ${JSON.stringify(manifest.name)},\n${lists.join(',\n')}${
     manifest.workspaces ? `,\n  "workspaces": ${JSON.stringify(manifest.workspaces)}` : ''
   }\n}\n`;

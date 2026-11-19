@@ -776,5 +776,16 @@ it(
 
     await writeFile(join(root, 'live.glb'), 'live');
     await expect(run(['add', './live.glb', '--remote'])).rejects.toThrow();
+
+    // A manifest can consist of pinned lists alone, and is written back without an empty `dependencies`.
+    await writeFile(
+      join(root, 'assets.json'),
+      JSON.stringify({ name: 'pinned-only', localDependencies: { auto: 'acme/models/chair@1.0.0' } }),
+    );
+    await run(['add', 'acme/models/chair@1.0.0', '--as', 'second', '--local']);
+    expect(JSON.parse(await readFile(join(root, 'assets.json'), 'utf8'))).toEqual({
+      name: 'pinned-only',
+      localDependencies: { auto: 'acme/models/chair@1.0.0', second: 'acme/models/chair@1.0.0' },
+    });
   },
 );
