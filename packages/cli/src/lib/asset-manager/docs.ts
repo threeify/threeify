@@ -46,7 +46,7 @@ export const assetManagerDocs: DocumentOverrides = {
         'Direct HTTP(S) URLs are downloaded only into this project cache without integrity checks. Existing downloads are reused; `--refresh` fetches their current response again. A failed refresh preserves an existing cached download. URL downloads never enter the global store.',
         '`file:` sources are never read, hashed, copied, or altered by pull. Offline use still requires those original files and any decoder/WASM resources used by your application to be available.',
         '`--frozen-lockfile` fails before fetching if the root lockfile is missing or differs from the manifests. It prevents resolution changes, but cannot make direct URLs or live files immutable. Use it in CI when selections must already be committed.',
-        'Run `threeify resolve` again after pulling if your application uses an exported JSON map. Applications using the Vite plugin obtain their map through `virtual:loa`.',
+        'Run `threeify resolve` again after pulling if your application uses an exported JSON map. Applications using the Vite plugin obtain their map through `virtual:threeify`.',
       ].join('\n\n'),
       examples: [
         { title: 'Pull the workspace asset set', content: 'threeify pull' },
@@ -91,7 +91,7 @@ export const assetManagerDocs: DocumentOverrides = {
     },
     'threeify resolve': {
       description: [
-        'Writes an optional alias-to-URL map to `asset-resolution.json` at the workspace root. Requires a matching lockfile and makes no registry or download requests. Serve the JSON with your application and load it before the first asset request. Vite users can use `virtual:loa` instead of exporting this file.',
+        'Writes an optional alias-to-URL map to `asset-resolution.json` at the workspace root. Requires a matching lockfile and makes no registry or download requests. Serve the JSON with your application and load it before the first asset request. Vite users can use `virtual:threeify` instead of exporting this file.',
         'The default `auto` mode checks each native asset and direct URL for a pulled file in project-local `assets/`. Present files receive local URLs; absent files keep their remote URLs. Native local bytes are hash-verified before use; a mismatch fails without replacing the previous map. Direct URL downloads remain unverified. Live `file:` entries retain their live serving URLs. Optional workspace-root `assets.local.json` overrides take precedence in every mode: `{ "overrides": { "chair": "file:./drafts/chair.glb" } }`. Override paths are relative to that root; aliases must already exist. Overrides never change manifests or locks, and pull still installs published selections.',
         'The manifest list takes precedence over `--mode`: `localDependencies` always receive local URLs, and the command fails if one is not installed; `remoteDependencies` always receive remote URLs.',
         '`--mode remote` forces native and direct URL sources to their remote URLs. `--mode local` forces their expected project-cache URLs. Detection occurs when the command runs, not during a loader request; regenerate the map after pulling or removing local files.',

@@ -14,7 +14,7 @@ import {
 import type { LockedAsset, Lockfile, ResolveMode } from './types.js';
 import type { Plugin } from 'vite';
 
-export type LoaPluginOptions = {
+export type ThreeifyPluginOptions = {
   /** Default: auto (installed files first, remote otherwise). Local mode requires threeify pull for native and URL sources. */
   mode?: ResolveMode;
   /** Project root; defaults to Vite's root. */
@@ -22,7 +22,7 @@ export type LoaPluginOptions = {
   /** Lockfile path relative to root. Default: assets-lock.json. */
   lockfile?: string;
 };
-const virtualId = '\0virtual:loa';
+const virtualId = '\0virtual:threeify';
 
 function localPath(root: string, directory: string, entry: LockedAsset, alias: string): string {
   return entry.kind === 'file' ? resolve(root, directory, entry.path) : resolve(root, relativeAssetPath(entry, alias));
@@ -32,12 +32,12 @@ async function readAsset(path: string, entry: LockedAsset): Promise<Buffer> {
   try {
     bytes = await readFile(path);
   } catch (error) {
-    throw new Error(`Cannot read LoA asset ${path}${entry.kind === 'file' ? '' : '; run threeify pull first'}`, {
+    throw new Error(`Cannot read Threeify asset ${path}${entry.kind === 'file' ? '' : '; run threeify pull first'}`, {
       cause: error,
     });
   }
   if (entry.kind === 'loa' && createHash('sha256').update(bytes).digest('hex') !== nativeHashHex(entry.hash)) {
-    throw new Error(`LoA asset integrity mismatch: ${path}; run threeify pull to repair it`);
+    throw new Error(`Threeify asset integrity mismatch: ${path}; run threeify pull to repair it`);
   }
   return bytes;
 }
@@ -58,10 +58,10 @@ function mimeType(path: string): string {
   return types[extname(path).toLowerCase()] ?? 'application/octet-stream';
 }
 
-/** Vite plugin. virtual:loa exports the complete synchronous alias-to-URL map. */
-export function loa(options: LoaPluginOptions = {}): Plugin {
+/** Vite plugin. virtual:threeify exports the complete synchronous alias-to-URL map. */
+export function threeify(options: ThreeifyPluginOptions = {}): Plugin {
   const mode = options.mode ?? 'auto';
-  if (!['auto', 'remote', 'local'].includes(mode)) throw new Error('Expected auto, remote or local LoA mode');
+  if (!['auto', 'remote', 'local'].includes(mode)) throw new Error('Expected auto, remote or local Threeify mode');
   let root = resolve(options.root ?? '.');
   let lockPath = resolve(root, options.lockfile ?? 'assets-lock.json');
   let base = '/';
@@ -69,7 +69,7 @@ export function loa(options: LoaPluginOptions = {}): Plugin {
   const readLock = async (): Promise<Lockfile> =>
     applyLocalOverrides(parseLockfile(JSON.parse(await readFile(lockPath, 'utf8'))), root);
   return {
-    name: 'loa-assets',
+    name: 'threeify-assets',
     enforce: 'pre' as const,
     configResolved(config) {
       root = resolve(options.root ?? config.root);
@@ -78,7 +78,7 @@ export function loa(options: LoaPluginOptions = {}): Plugin {
       building = config.command === 'build';
     },
     resolveId(id: string) {
-      return id === 'virtual:loa' ? virtualId : undefined;
+      return id === 'virtual:threeify' ? virtualId : undefined;
     },
     async load(id) {
       if (id !== virtualId) return undefined;
@@ -101,7 +101,7 @@ export function loa(options: LoaPluginOptions = {}): Plugin {
           const bytes = await readAsset(path, entry);
           const extension = entry.kind === 'file' ? extname(path) : entry.extension;
           const hash = createHash('sha256').update(bytes).digest('hex');
-          const emitted = this.emitFile({ type: 'asset', name: `loa-${hash}${extension}`, source: bytes });
+          const emitted = this.emitFile({ type: 'asset', name: `threeify-${hash}${extension}`, source: bytes });
           entries.push(`[${JSON.stringify(alias)}]:import.meta.ROLLUP_FILE_URL_${emitted}`);
         }
       }
@@ -113,7 +113,7 @@ export function loa(options: LoaPluginOptions = {}): Plugin {
       const updateRoutes = () => {
         buildResolution(lock, { mode, rootDir: root });
         routes = new Map();
-        const prefix = new URL(base, 'http://loa.local/').pathname.replace(/\/$/, '');
+        const prefix = new URL(base, 'http://threeify.local/').pathname.replace(/\/$/, '');
         for (const [directory, importer] of Object.entries(lock.importers)) {
           for (const [alias, entry] of Object.entries(importer.dependencies)) {
             if (entry.kind !== 'file' && (entry.mode ?? mode) === 'remote') continue;
@@ -160,11 +160,11 @@ export function loa(options: LoaPluginOptions = {}): Plugin {
         );
       });
       server.middlewares.use((request, response, next) => {
-        const pathname = new URL(request.url ?? '/', 'http://loa.local').pathname;
+        const pathname = new URL(request.url ?? '/', 'http://threeify.local').pathname;
         const route = routes.get(pathname);
         if (!route) {
-          const prefix = new URL(base, 'http://loa.local/').pathname.replace(/\/$/, '');
-          if (['/__loa/live/', '/assets/'].some((part) => pathname.startsWith(`${prefix}${part}`))) {
+          const prefix = new URL(base, 'http://threeify.local/').pathname.replace(/\/$/, '');
+          if (['/__threeify/live/', '/assets/'].some((part) => pathname.startsWith(`${prefix}${part}`))) {
             response.writeHead(404);
             response.end();
             return;
@@ -187,7 +187,7 @@ export function loa(options: LoaPluginOptions = {}): Plugin {
           })
           .catch((error: unknown) => {
             response.writeHead(500, { 'Content-Type': 'text/plain' });
-            response.end(error instanceof Error ? error.message : 'Could not read LoA asset');
+            response.end(error instanceof Error ? error.message : 'Could not read Threeify asset');
           });
       });
     },

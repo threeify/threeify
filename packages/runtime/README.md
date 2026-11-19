@@ -23,9 +23,9 @@ npm install @threeify/runtime
 ## Usage
 
 ```ts
-import { loaResolver } from '@threeify/runtime';
+import { threeifyResolver } from '@threeify/runtime';
 
-const assets = await loaResolver({
+const assets = await threeifyResolver({
   resolution: { chair: 'https://cdn.example.com/chair.glb' },
 });
 const modelUrl = assets.url('chair');

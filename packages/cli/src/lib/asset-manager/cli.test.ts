@@ -462,7 +462,7 @@ it('resolves local overrides without rewriting the lock or manifest', async () =
   await writeFile(join(root, 'draft.glb'), 'draft');
   await writeFile(join(root, 'assets.local.json'), JSON.stringify({ overrides: { chair: 'file:./draft.glb' } }));
   await run(['resolve', '--mode', 'remote']);
-  expect(JSON.parse(await readFile(join(root, 'asset-resolution.json'), 'utf8')).chair).toContain('/__loa/live/');
+  expect(JSON.parse(await readFile(join(root, 'asset-resolution.json'), 'utf8')).chair).toContain('/__threeify/live/');
   expect(await readFile(join(root, 'assets-lock.json'), 'utf8')).toBe(before);
 });
 

@@ -232,7 +232,7 @@ export function isLocalAsset(root: string, entry: LockedAsset, mode: ResolveMode
 
 /** URL served by the Vite plugin for precisely this locked local file. */
 export function liveAssetUrl(importer: string, alias: string): string {
-  return `__loa/live/${urlHash(`${importer}\0${alias}`)}`;
+  return `__threeify/live/${urlHash(`${importer}\0${alias}`)}`;
 }
 export function buildResolution(
   lock: Lockfile,
