@@ -231,7 +231,7 @@ describe('asset manager executable', { timeout: 20_000 }, () => {
       expect(await readdir(root)).not.toContain('store');
       await run([command, '--frozen-lockfile']);
       const project = await loadProject(root);
-      const entry = project.lock!.importers['.']!.assets.chair as NativeAsset;
+      const entry = project.lock!.importers['.']!.dependencies.chair as NativeAsset;
       expect(await readFile(join(root, relativeAssetPath(entry, 'chair')))).toEqual(nativeBytes);
       expect(await readFile(contentPath(store, nativeHashHex(entry.hash)))).toEqual(nativeBytes);
       expect(requests.every((r) => r.auth === undefined)).toBe(true);
@@ -255,7 +255,7 @@ describe('asset manager executable', { timeout: 20_000 }, () => {
       await run(['add', `${host}/external.glb`, '--as', 'external']);
       expect(requests).toEqual([]);
       await run([command]);
-      const entry = (await loadProject(root)).lock!.importers['.']!.assets.external as UrlAsset;
+      const entry = (await loadProject(root)).lock!.importers['.']!.dependencies.external as UrlAsset;
       const destination = join(root, relativeAssetPath(entry, entry.kind === 'url' ? 'external' : 'chair'));
       expect(await readFile(destination, 'utf8')).toBe('external version one');
       expect(await readdir(root)).not.toContain('store');
@@ -272,7 +272,7 @@ describe('asset manager executable', { timeout: 20_000 }, () => {
     await run(['add', 'acme/models/chair', '--as', 'chair']);
     await run(['add', `${host}/external.glb`, '--as', 'external']);
     await run(['pull', '--frozen-lockfile']);
-    const assets = (await loadProject(root)).lock!.importers['.']!.assets;
+    const assets = (await loadProject(root)).lock!.importers['.']!.dependencies;
     for (const alias of ['chair', 'external']) {
       const entry = assets[alias]!;
       if (entry.kind === 'file') throw new Error('Expected pulled test asset');
@@ -289,7 +289,7 @@ describe('asset manager executable', { timeout: 20_000 }, () => {
   it('automatically resolves each asset locally when present and remotely when absent without fetching', async () => {
     await run(['add', 'acme/models/chair', '--as', 'chair']);
     await run(['add', `${host}/external.glb`, '--as', 'external']);
-    const assets = (await loadProject(root)).lock!.importers['.']!.assets;
+    const assets = (await loadProject(root)).lock!.importers['.']!.dependencies;
     requests = [];
     await run(['resolve']);
     expect(JSON.parse(await readFile(join(root, 'asset-resolution.json'), 'utf8'))).toEqual({
@@ -319,7 +319,7 @@ describe('asset manager executable', { timeout: 20_000 }, () => {
     await run(['pull']);
     await run(['resolve']);
     const previous = await readFile(join(root, 'asset-resolution.json'), 'utf8');
-    const entry = (await loadProject(root)).lock!.importers['.']!.assets.chair as NativeAsset;
+    const entry = (await loadProject(root)).lock!.importers['.']!.dependencies.chair as NativeAsset;
     const path = join(root, relativeAssetPath(entry, 'chair'));
     await chmod(path, 0o644);
     await writeFile(path, 'damaged native');
@@ -348,9 +348,9 @@ describe('asset manager executable', { timeout: 20_000 }, () => {
       const outdated = await run(['outdated']);
       expect(JSON.parse(outdated.stdout)).toEqual([{ alias, current: '1.0.0', latest: '2.0.0' }]);
       await run(['update', alias]);
-      expect((await loadProject(root)).lock!.importers['.']!.assets[alias]).toMatchObject({ version: '1.0.0' });
+      expect((await loadProject(root)).lock!.importers['.']!.dependencies[alias]).toMatchObject({ version: '1.0.0' });
       await run(['update', alias, '--latest']);
-      expect((await loadProject(root)).manifests['.']!.assets[alias]).toBe(
+      expect((await loadProject(root)).manifests['.']!.dependencies[alias]).toBe(
         alias === 'acme/models/chair' ? '2.0.0' : 'acme/models/chair@2.0.0',
       );
     },
@@ -359,8 +359,8 @@ describe('asset manager executable', { timeout: 20_000 }, () => {
     await run(['add', 'acme/models/chair', '--as', 'chair']);
     await run(['pull']);
     await run(['remove', 'chair']);
-    expect((await loadProject(root)).manifests['.']!.assets).toEqual({});
-    expect((await loadProject(root)).lock!.importers['.']!.assets).toEqual({});
+    expect((await loadProject(root)).manifests['.']!.dependencies).toEqual({});
+    expect((await loadProject(root)).lock!.importers['.']!.dependencies).toEqual({});
     expect((await verifyStore(store)).checked).toBe(1);
     await run(['store', 'prune']);
     expect((await verifyStore(store)).checked).toBe(0);
@@ -368,7 +368,7 @@ describe('asset manager executable', { timeout: 20_000 }, () => {
   it('rejects altered manifests in frozen mode before fetching or changing files', async () => {
     await run(['add', `${host}/external.glb`, '--as', 'external']);
     const project = await loadProject(root);
-    project.manifests['.']!.assets.external = `${host}/other.glb`;
+    project.manifests['.']!.dependencies.external = `${host}/other.glb`;
     await writeFile(join(root, 'assets.json'), JSON.stringify(project.manifests['.']));
     await expect(run(['pull', '--frozen-lockfile'])).rejects.toThrow();
     expect(requests).toEqual([]);
@@ -412,7 +412,7 @@ describe('asset manager executable', { timeout: 20_000 }, () => {
   it('preserves existing URL downloads when a refresh fails', async () => {
     await run(['add', `${host}/external.glb`, '--as', 'external']);
     await run(['pull']);
-    const entry = (await loadProject(root)).lock!.importers['.']!.assets.external as UrlAsset;
+    const entry = (await loadProject(root)).lock!.importers['.']!.dependencies.external as UrlAsset;
     failDownloads = true;
     await expect(run(['pull', '--refresh'])).rejects.toThrow();
     expect(
@@ -441,7 +441,7 @@ describe('asset manager executable', { timeout: 20_000 }, () => {
   });
   it('supports concurrent native pulls into the same store without partial objects', async () => {
     await run(['add', 'acme/models/chair', '--as', 'chair']);
-    const entry = (await loadProject(root)).lock!.importers['.']!.assets.chair!;
+    const entry = (await loadProject(root)).lock!.importers['.']!.dependencies.chair!;
     await Promise.all([pullAsset(entry, root, store), pullAsset(entry, root, store)]);
     expect((await verifyStore(store)).corrupt).toEqual([]);
     expect(await readFile(contentPath(store, oid))).toEqual(nativeBytes);
@@ -462,13 +462,13 @@ it('resolves local overrides without rewriting the lock or manifest', async () =
   await writeFile(join(root, 'draft.glb'), 'draft');
   await writeFile(join(root, 'assets.local.json'), JSON.stringify({ overrides: { chair: 'file:./draft.glb' } }));
   await run(['resolve', '--mode', 'remote']);
-  expect(JSON.parse(await readFile(join(root, 'asset-resolution.json'), 'utf8')).chair).toContain('/__loa/live/');
+  expect(JSON.parse(await readFile(join(root, 'asset-resolution.json'), 'utf8')).chair).toContain('/__threeify/live/');
   expect(await readFile(join(root, 'assets-lock.json'), 'utf8')).toBe(before);
 });
 
 it('downloads one shared native hash for concurrent versions', async () => {
   await run(['add', 'acme/models/chair@1.0.0', '--as', 'chair']);
-  const entry = (await loadProject(root)).lock!.importers['.']!.assets.chair as NativeAsset;
+  const entry = (await loadProject(root)).lock!.importers['.']!.dependencies.chair as NativeAsset;
   await Promise.all([
     pullAsset(entry, root, store),
     pullAsset({ ...entry, version: '2.0.0', specifier: 'acme/models/chair@2.0.0' }, root, store),
@@ -505,7 +505,7 @@ it('keeps canonical and aliased versions independent at stable manifest-key path
     join(root, 'assets.json'),
     JSON.stringify({
       name: 'two-versions',
-      assets: {
+      dependencies: {
         'acme/models/chair': '1.0.0',
         chair: 'acme/models/chair@2.0.0',
         same: 'acme/models/chair@1.0.0',
@@ -519,28 +519,28 @@ it('keeps canonical and aliased versions independent at stable manifest-key path
   expect((await lstat(alias)).isSymbolicLink()).toBe(true);
   await expectCacheLink(join(root, 'assets/same.glb'));
   const lock = (await loadProject(root)).lock!;
-  expect(lock.importers['.']!.assets.chair).toMatchObject({ version: '2.0.0' });
-  expect(lock.importers['.']!.assets['acme/models/chair']).toMatchObject({ version: '1.0.0' });
+  expect(lock.importers['.']!.dependencies.chair).toMatchObject({ version: '2.0.0' });
+  expect(lock.importers['.']!.dependencies['acme/models/chair']).toMatchObject({ version: '1.0.0' });
   // Give the second locked version distinct bytes, served from the global cache.
   const alternateBytes = Buffer.from('second published chair');
   const alternateHex = createHash('sha256').update(alternateBytes).digest('hex');
   const alternate = {
-    ...(lock.importers['.']!.assets.chair as NativeAsset),
+    ...(lock.importers['.']!.dependencies.chair as NativeAsset),
     hash: `sha256-${Buffer.from(alternateHex, 'hex').toString('base64')}`,
     remoteUrl: `${host}/files/${alternateHex}`,
   };
   const cached = contentPath(store, alternateHex);
   await mkdir(join(store, 'v1/sha256', alternateHex.slice(0, 2)), { recursive: true });
   await writeFile(cached, alternateBytes);
-  lock.importers['.']!.assets.chair = alternate;
+  lock.importers['.']!.dependencies.chair = alternate;
   await writeFile(join(root, 'assets-lock.json'), JSON.stringify(lock));
   await run(['install', '--frozen-lockfile']);
   expect(await readFile(canonical)).toEqual(nativeBytes);
   expect(await readFile(alias)).toEqual(alternateBytes);
   // Changing the canonical selection must leave the other alias on its original cache object.
   const manifest = JSON.parse(await readFile(join(root, 'assets.json'), 'utf8'));
-  manifest.assets['acme/models/chair'] = '2.0.0';
-  lock.importers['.']!.assets['acme/models/chair'] = alternate;
+  manifest.dependencies['acme/models/chair'] = '2.0.0';
+  lock.importers['.']!.dependencies['acme/models/chair'] = alternate;
   await writeFile(join(root, 'assets.json'), JSON.stringify(manifest));
   await writeFile(join(root, 'assets-lock.json'), JSON.stringify(lock));
   await run(['install', '--frozen-lockfile']);
@@ -572,7 +572,7 @@ it('uses install --parallel for metadata lookups as well as downloads', async ()
     join(root, 'assets.json'),
     JSON.stringify({
       name: 'parallel',
-      assets: Object.fromEntries(
+      dependencies: Object.fromEntries(
         Array.from({ length: 5 }, (_, index) => [`chair-${index}`, 'acme/models/chair@1.0.0']),
       ),
     }),
@@ -592,7 +592,7 @@ it('starts a queued download while another metadata lookup is still pending', as
     join(root, 'assets.json'),
     JSON.stringify({
       name: 'pipeline',
-      assets: {
+      dependencies: {
         a: 'acme/models/chair@1.0.0',
         b: 'acme/models/chair@2.0.0',
         c: 'acme/models/chair@1.0.0',
@@ -613,7 +613,7 @@ it.each(['install', 'pull'])(
   async (command) => {
     await writeFile(
       join(root, 'assets.json'),
-      JSON.stringify({ name: 'prune', assets: { 'old/chair': 'acme/models/chair@1.0.0' } }),
+      JSON.stringify({ name: 'prune', dependencies: { 'old/chair': 'acme/models/chair@1.0.0' } }),
     );
     await run([command]);
     await mkdir(join(root, 'outside'));
@@ -623,7 +623,7 @@ it.each(['install', 'pull'])(
     await symlink('missing.glb', join(root, 'assets/broken.glb'));
     await writeFile(
       join(root, 'assets.json'),
-      JSON.stringify({ name: 'prune', assets: { 'new/chair': 'acme/models/chair@1.0.0' } }),
+      JSON.stringify({ name: 'prune', dependencies: { 'new/chair': 'acme/models/chair@1.0.0' } }),
     );
     await run([command]);
     expect(await readdir(join(root, 'assets'))).toEqual(['new']);
@@ -639,7 +639,7 @@ it('remove prunes one native binding and keeps other direct cache links usable',
     join(root, 'assets.json'),
     JSON.stringify({
       name: 'aliases',
-      assets: {
+      dependencies: {
         'acme/models/chair': '1.0.0',
         'furniture/chair': 'acme/models/chair@1.0.0',
         seat: 'acme/models/chair@1.0.0',
@@ -658,7 +658,7 @@ it('remove prunes one native binding and keeps other direct cache links usable',
 it('remove preserves independent URL alias copies without redownloading and removes the last receipt', async () => {
   await writeFile(
     join(root, 'assets.json'),
-    JSON.stringify({ name: 'urls', assets: { a: `${host}/external.glb`, b: `${host}/external.glb` } }),
+    JSON.stringify({ name: 'urls', dependencies: { a: `${host}/external.glb`, b: `${host}/external.glb` } }),
   );
   await run(['install']);
   urlBytes = 'changed remote bytes';
@@ -675,17 +675,17 @@ it('remove retains bindings owned by the other workspace manifests', async () =>
   await mkdir(join(root, 'levels/lobby'), { recursive: true });
   await writeFile(
     join(root, 'assets.json'),
-    JSON.stringify({ name: 'world', workspaces: ['levels/*'], assets: { a: 'acme/models/chair@1.0.0' } }),
+    JSON.stringify({ name: 'world', workspaces: ['levels/*'], dependencies: { a: 'acme/models/chair@1.0.0' } }),
   );
   await writeFile(
     join(root, 'levels/lobby/assets.json'),
-    JSON.stringify({ name: 'lobby', assets: { b: 'acme/models/chair@1.0.0' } }),
+    JSON.stringify({ name: 'lobby', dependencies: { b: 'acme/models/chair@1.0.0' } }),
   );
   await run(['install']);
   await run(['remove', 'a']);
   expect(await readdir(join(root, 'assets'))).toEqual(['b.glb']);
   expect(await readFile(join(root, 'assets/b.glb'))).toEqual(nativeBytes);
-  expect((await loadProject(root)).lock!.importers['levels/lobby']!.assets.b).toBeDefined();
+  expect((await loadProject(root)).lock!.importers['levels/lobby']!.dependencies.b).toBeDefined();
 });
 
 it('reconciles file-to-directory and directory-to-file changes', async () => {
@@ -713,7 +713,10 @@ it('preserves tracked live files, local override files and a protected global st
   );
   await writeFile(
     join(root, 'assets.json'),
-    JSON.stringify({ name: 'live', assets: { chair: 'acme/models/chair@1.0.0', live: 'file:./assets/live.glb' } }),
+    JSON.stringify({
+      name: 'live',
+      dependencies: { chair: 'acme/models/chair@1.0.0', live: 'file:./assets/live.glb' },
+    }),
   );
   const internalStore = join(root, 'assets/global-store');
   await run(['install'], { LOA_STORE_DIR: internalStore });
@@ -722,3 +725,67 @@ it('preserves tracked live files, local override files and a protected global st
   expect(await readFile(join(root, 'assets/drafts/override.glb'), 'utf8')).toBe('draft bytes');
   expect((await verifyStore(internalStore)).checked).toBe(1);
 });
+
+// Launches the real CLI over a dozen times.
+it(
+  'installs local dependencies, keeps remote dependencies remote, and resolves each list to its side',
+  { timeout: 60_000 },
+  async () => {
+    await run(['add', 'acme/models/chair@1.0.0', '--as', 'auto']);
+    await run(['add', 'acme/models/chair@1.0.0', '--as', 'pinned', '--local']);
+    await run(['add', 'acme/models/chair@1.0.0', '--as', 'cloud', '--remote']);
+    await run(['add', `${host}/external.glb`, '--as', 'cloudUrl', '--remote']);
+    expect(JSON.parse(await readFile(join(root, 'assets.json'), 'utf8'))).toEqual({
+      name: expect.any(String),
+      dependencies: { auto: 'acme/models/chair@1.0.0' },
+      localDependencies: { pinned: 'acme/models/chair@1.0.0' },
+      remoteDependencies: { cloud: 'acme/models/chair@1.0.0', cloudUrl: `${host}/external.glb` },
+    });
+    // A local dependency must be installed before it can be resolved, in every mode.
+    await expect(run(['resolve', '--mode', 'remote'])).rejects.toThrow();
+
+    await run(['install']);
+    expect((await readdir(join(root, 'assets'))).toSorted()).toEqual(['auto.glb', 'pinned.glb']);
+    expect(requests.some((r) => r.path === '/external.glb')).toBe(false);
+
+    const remote = (await loadProject(root)).lock!.importers['.']!.dependencies.cloud as NativeAsset;
+    expect(remote.mode).toBe('remote');
+    for (const [mode, auto] of [
+      ['remote', remote.remoteUrl],
+      ['local', '/assets/auto.glb'],
+      ['auto', '/assets/auto.glb'],
+    ]) {
+      await run(['resolve', '--mode', mode!]);
+      expect(JSON.parse(await readFile(join(root, 'asset-resolution.json'), 'utf8'))).toEqual({
+        auto,
+        pinned: '/assets/pinned.glb',
+        cloud: remote.remoteUrl,
+        cloudUrl: `${host}/external.glb`,
+      });
+    }
+
+    // Re-adding moves a binding between lists; install prunes what became remote.
+    await run(['add', 'acme/models/chair@1.0.0', '--as', 'pinned', '--remote']);
+    await run(['install', '--frozen-lockfile']);
+    expect(await readdir(join(root, 'assets'))).toEqual(['auto.glb']);
+    await run(['remove', 'cloud']);
+    expect(JSON.parse(await readFile(join(root, 'assets.json'), 'utf8')).remoteDependencies).toEqual({
+      cloudUrl: `${host}/external.glb`,
+      pinned: 'acme/models/chair@1.0.0',
+    });
+
+    await writeFile(join(root, 'live.glb'), 'live');
+    await expect(run(['add', './live.glb', '--remote'])).rejects.toThrow();
+
+    // A manifest can consist of pinned lists alone, and is written back without an empty `dependencies`.
+    await writeFile(
+      join(root, 'assets.json'),
+      JSON.stringify({ name: 'pinned-only', localDependencies: { auto: 'acme/models/chair@1.0.0' } }),
+    );
+    await run(['add', 'acme/models/chair@1.0.0', '--as', 'second', '--local']);
+    expect(JSON.parse(await readFile(join(root, 'assets.json'), 'utf8'))).toEqual({
+      name: 'pinned-only',
+      localDependencies: { auto: 'acme/models/chair@1.0.0', second: 'acme/models/chair@1.0.0' },
+    });
+  },
+);

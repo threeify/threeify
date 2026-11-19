@@ -40,8 +40,8 @@ export async function requiredAssetTree(
   };
   let hasUrls = false;
   for (const [directory, importer] of Object.entries(lock.importers)) {
-    for (const entry of Object.values(importer.assets)) {
-      if (entry.kind === 'url') hasUrls = true;
+    for (const entry of Object.values(importer.dependencies)) {
+      if (entry.kind === 'url' && entry.mode !== 'remote') hasUrls = true;
       if (entry.kind === 'file') keepLive(resolve(root, directory, entry.path));
     }
   }

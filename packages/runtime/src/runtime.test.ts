@@ -4,7 +4,7 @@ import { tmpdir } from 'node:os';
 import { dirname, join } from 'node:path';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import { build, createServer } from 'vite';
-import { createLoaResolver, loadLoaResolver, loaResolver } from './index.js';
+import { createThreeifyResolver, loadThreeifyResolver, threeifyResolver } from './index.js';
 import {
   applyLocalOverrides,
   buildResolution,
@@ -16,7 +16,7 @@ import {
   assetInstallPaths,
 } from './node.js';
 import type { Lockfile, NativeAsset } from './types.js';
-import { loa } from './vite.js';
+import { threeify } from './vite.js';
 
 const bytes = Buffer.from('immutable glb test payload');
 const hex = createHash('sha256').update(bytes).digest('hex');
@@ -32,11 +32,11 @@ const native: NativeAsset = {
 };
 function lock(): Lockfile {
   return {
-    lockfileVersion: 1,
+    lockfileVersion: 2,
     importers: {
       '.': {
         name: 'showroom',
-        assets: {
+        dependencies: {
           chair: native,
           remote: {
             kind: 'url',
@@ -63,12 +63,12 @@ async function fixture() {
   await mkdir(join(root, 'brand'));
   await writeFile(join(root, 'brand/logo.png'), 'logo bytes');
   await writeFile(join(root, 'index.html'), '<script type="module" src="/main.js"></script>');
-  await writeFile(join(root, 'main.js'), 'import resolution from "virtual:loa"; console.log(resolution);');
+  await writeFile(join(root, 'main.js'), 'import resolution from "virtual:threeify"; console.log(resolution);');
   return { root, value };
 }
 async function materialize(root: string, value: Lockfile) {
   for (const importer of Object.values(value.importers)) {
-    for (const [alias, entry] of Object.entries(importer.assets)) {
+    for (const [alias, entry] of Object.entries(importer.dependencies)) {
       if (entry.kind === 'file') continue;
       const path = join(root, relativeAssetPath(entry, alias));
       await mkdir(dirname(path), { recursive: true });
@@ -81,38 +81,38 @@ describe('browser resolver', () => {
   it('always returns promises and rejects invalid in-memory maps asynchronously', async () => {
     const fetch = vi.fn();
     vi.stubGlobal('fetch', fetch);
-    const pending = loaResolver({ resolution: { chair: '/chair.glb' } });
+    const pending = threeifyResolver({ resolution: { chair: '/chair.glb' } });
     expect(pending).toBeInstanceOf(Promise);
     expect((await pending).url('chair')).toBe('/chair.glb');
     expect(fetch).not.toHaveBeenCalled();
-    const invalid = loaResolver({ resolution: { chair: '' } });
+    const invalid = threeifyResolver({ resolution: { chair: '' } });
     expect(invalid).toBeInstanceOf(Promise);
     await expect(invalid).rejects.toThrow('Invalid URL for asset chair');
   });
   it('retains the existing resolver entry points for compatibility', async () => {
     const resolution = { chair: '/chair.glb' };
-    expect(createLoaResolver({ resolution }).url('chair')).toBe('/chair.glb');
+    expect(createThreeifyResolver({ resolution }).url('chair')).toBe('/chair.glb');
     vi.stubGlobal('fetch', vi.fn().mockResolvedValue(new Response(JSON.stringify(resolution))));
-    expect((await loadLoaResolver('/map.json')).url('chair')).toBe('/chair.glb');
+    expect((await loadThreeifyResolver('/map.json')).url('chair')).toBe('/chair.glb');
   });
 
   it('resolves aliases and leaves decoder, blob and ordinary URLs unchanged', async () => {
-    const resolver = await loaResolver({ resolution: { chair: '/chair.glb', toString: '/safe.glb' } });
+    const resolver = await threeifyResolver({ resolution: { chair: '/chair.glb', toString: '/safe.glb' } });
     expect(resolver.url('chair')).toBe('/chair.glb');
-    expect(resolver.urlModifier('loa:chair')).toBe('/chair.glb');
+    expect(resolver.urlModifier('threeify:chair')).toBe('/chair.glb');
     expect(resolver.url('toString')).toBe('/safe.glb');
     for (const value of ['draco/decoder.wasm', 'https://example.com/image.png', 'blob:embedded'])
       expect(resolver.urlModifier(value)).toBe(value);
-    expect(() => resolver.urlModifier('loa:missing')).toThrow('Unknown LoA asset alias');
-    expect(() => resolver.url('constructor')).toThrow('Unknown LoA asset alias');
+    expect(() => resolver.urlModifier('threeify:missing')).toThrow('Unknown Threeify asset alias');
+    expect(() => resolver.url('constructor')).toThrow('Unknown Threeify asset alias');
   });
   it('loads plain JSON maps and reports failed or invalid responses', async () => {
     vi.stubGlobal('fetch', vi.fn().mockResolvedValue(new Response(JSON.stringify({ chair: '/chair.glb' }))));
-    expect((await loadLoaResolver('/map.json')).url('chair')).toBe('/chair.glb');
+    expect((await loadThreeifyResolver('/map.json')).url('chair')).toBe('/chair.glb');
     vi.stubGlobal('fetch', vi.fn().mockResolvedValue(new Response('', { status: 404 })));
-    await expect(loadLoaResolver('/map.json')).rejects.toThrow('HTTP 404');
+    await expect(loadThreeifyResolver('/map.json')).rejects.toThrow('HTTP 404');
     vi.stubGlobal('fetch', vi.fn().mockResolvedValue(new Response('[]')));
-    await expect(loadLoaResolver('/map.json')).rejects.toThrow('Invalid LoA resolution map');
+    await expect(loadThreeifyResolver('/map.json')).rejects.toThrow('Invalid Threeify resolution map');
   });
 });
 
@@ -141,7 +141,7 @@ describe('lock resolution', () => {
       ['chair.glb/child', { ...native }],
     ] as const) {
       const value = lock();
-      value.importers['.']!.assets[alias] = entry;
+      value.importers['.']!.dependencies[alias] = entry;
       expect(() => assetInstallPaths(value)).toThrow('Conflicting installed asset');
     }
   });
@@ -150,7 +150,7 @@ describe('lock resolution', () => {
     for (const hash of ['sha256-bad', `sha256-${hex}`, `sha256-${'A'.repeat(42)}B=`])
       expect(() => nativeHashHex(hash)).toThrow();
     const broken = lock();
-    broken.importers['.']!.assets.chair = { ...native, remoteUrl: 'https://evil.example/chair.glb' };
+    broken.importers['.']!.dependencies.chair = { ...native, remoteUrl: 'https://evil.example/chair.glb' };
     expect(() => parseLockfile(broken)).toThrow('must match');
     const invalid = lock();
     invalid.importers['../outside'] = invalid.importers['.']!;
@@ -158,20 +158,20 @@ describe('lock resolution', () => {
   });
   it('rejects bare-version native source shorthand in locks', () => {
     const value = lock();
-    value.importers['.']!.assets.chair = { ...native, specifier: '1.0.0' };
+    value.importers['.']!.dependencies.chair = { ...native, specifier: '1.0.0' };
     expect(() => parseLockfile(value)).toThrow('full org/project/asset ref');
   });
   it('rejects absolute or inconsistent live paths and URL substitutions', () => {
     for (const path of ['/etc/passwd', 'C:/secret.png', '..\\secret.png']) {
       const value = lock();
-      value.importers['.']!.assets.logo = { kind: 'file', specifier: `file:${path}`, path };
+      value.importers['.']!.dependencies.logo = { kind: 'file', specifier: `file:${path}`, path };
       expect(() => parseLockfile(value)).toThrow('portable relative paths');
     }
     const live = lock();
-    live.importers['.']!.assets.logo = { kind: 'file', specifier: 'file:./logo.png', path: '../secret.png' };
+    live.importers['.']!.dependencies.logo = { kind: 'file', specifier: 'file:./logo.png', path: '../secret.png' };
     expect(() => parseLockfile(live)).toThrow('must match');
     const direct = lock();
-    direct.importers['.']!.assets.remote = {
+    direct.importers['.']!.dependencies.remote = {
       kind: 'url',
       specifier: 'https://example.com/original.png',
       url: 'https://other.example/substitution.png',
@@ -179,16 +179,16 @@ describe('lock resolution', () => {
     };
     expect(() => parseLockfile(direct)).toThrow('must match');
     const parent = lock();
-    parent.importers['.']!.assets.logo = {
+    parent.importers['.']!.dependencies.logo = {
       kind: 'file',
       specifier: 'file:../brand/logo.png',
       path: '../brand/logo.png',
     };
-    expect(parseLockfile(parent).importers['.']!.assets.logo!.kind).toBe('file');
+    expect(parseLockfile(parent).importers['.']!.dependencies.logo!.kind).toBe('file');
   });
   it('rejects duplicate aliases across workspaces', () => {
     const value = lock();
-    value.importers['levels/lobby'] = { name: 'lobby', assets: { chair: native } };
+    value.importers['levels/lobby'] = { name: 'lobby', dependencies: { chair: native } };
     expect(() => buildResolution(value, { mode: 'remote' })).toThrow('Duplicate workspace asset alias: chair');
   });
 });
@@ -201,7 +201,7 @@ describe('Vite integration', () => {
       configFile: false,
       base: '/showroom/',
       logLevel: 'silent',
-      plugins: [loa()],
+      plugins: [threeify()],
       build: { write: false, minify: false, assetsInlineLimit: 0 },
     });
     const output = (Array.isArray(result) ? result[0] : result) as {
@@ -210,7 +210,7 @@ describe('Vite integration', () => {
     const code = output.output.find((item) => item.type === 'chunk')!.code!;
     expect(code).toContain(native.remoteUrl);
     expect(code).toContain('https://example.com/chair@1.0.0');
-    expect(code).toContain('/showroom/assets/loa-');
+    expect(code).toContain('/showroom/assets/threeify-');
     expect(output.output.filter((item) => item.type === 'asset')).toHaveLength(2); // HTML + live logo.
   });
   it('emits all cached and live bytes in local mode with relative deploy bases', async () => {
@@ -221,7 +221,7 @@ describe('Vite integration', () => {
       configFile: false,
       base: './',
       logLevel: 'silent',
-      plugins: [loa({ mode: 'local' })],
+      plugins: [threeify({ mode: 'local' })],
       build: { write: false, minify: false, assetsInlineLimit: 0 },
     });
     const output = (Array.isArray(result) ? result[0] : result) as {
@@ -242,7 +242,7 @@ describe('Vite integration', () => {
         root,
         configFile: false,
         logLevel: 'silent',
-        plugins: [loa({ mode: 'local' })],
+        plugins: [threeify({ mode: 'local' })],
         build: { write: false },
       }),
     ).rejects.toThrow('integrity mismatch');
@@ -255,7 +255,7 @@ describe('Vite integration', () => {
       configFile: false,
       logLevel: 'silent',
       base: '/demo/',
-      plugins: [loa({ mode: 'local' })],
+      plugins: [threeify({ mode: 'local' })],
       server: { host: '127.0.0.1', port: 0 },
     });
     try {
@@ -270,7 +270,7 @@ describe('Vite integration', () => {
       expect(await (await fetch(`${origin}/demo/${relativeAssetPath(native, 'chair')}`)).text()).toBe(bytes.toString());
       await writeFile(join(root, relativeAssetPath(native, 'chair')), 'corrupted');
       expect((await fetch(`${origin}/demo/${relativeAssetPath(native, 'chair')}`)).status).toBe(500);
-      expect((await fetch(`${origin}/demo/__loa/live/not-locked`)).status).toBe(404);
+      expect((await fetch(`${origin}/demo/__threeify/live/not-locked`)).status).toBe(404);
       expect(await readFile(join(root, 'brand/logo.png'), 'utf8')).toBe('edited live bytes');
     } finally {
       await server.close();
@@ -289,11 +289,11 @@ describe('local-first development', () => {
   });
   it('overrides a workspace alias without changing tracked selections, even in remote mode', async () => {
     const { root, value } = await fixture();
-    value.importers['levels/lobby'] = { name: 'lobby', assets: { couch: native } };
+    value.importers['levels/lobby'] = { name: 'lobby', dependencies: { couch: native } };
     const before = JSON.stringify(value);
     await writeFile(join(root, 'assets.local.json'), JSON.stringify({ overrides: { couch: 'file:./brand/logo.png' } }));
     const overridden = applyLocalOverrides(value, root);
-    expect(overridden.importers['levels/lobby']!.assets.couch).toMatchObject({
+    expect(overridden.importers['levels/lobby']!.dependencies.couch).toMatchObject({
       kind: 'file',
       path: '../../brand/logo.png',
     });
@@ -320,21 +320,24 @@ describe('local-first development', () => {
     const { root, value } = await fixture();
     await materialize(root, value);
     await rm(
-      join(root, relativeAssetPath(value.importers['.']!.assets.remote as import('./types.js').UrlAsset, 'remote')),
+      join(
+        root,
+        relativeAssetPath(value.importers['.']!.dependencies.remote as import('./types.js').UrlAsset, 'remote'),
+      ),
     );
     await writeFile(join(root, 'assets.local.json'), JSON.stringify({ overrides: { chair: 'file:./brand/logo.png' } }));
     const result = await build({
       root,
       configFile: false,
       logLevel: 'silent',
-      plugins: [loa()],
+      plugins: [threeify()],
       build: { write: false, minify: false, assetsInlineLimit: 0 },
     });
     const output = (Array.isArray(result) ? result[0] : result) as { output: { type: string; code?: string }[] };
     const code = output.output.find((item) => item.type === 'chunk')!.code!;
     expect(code).not.toContain(native.remoteUrl);
     expect(code).toContain('https://example.com/chair@1.0.0');
-    expect(code).toContain('assets/loa-');
+    expect(code).toContain('assets/threeify-');
     expect(JSON.parse(await readFile(join(root, 'assets-lock.json'), 'utf8'))).toEqual(value);
   });
 });
@@ -345,10 +348,10 @@ it('refreshes the cached development map when initial watcher scanning completes
     root,
     configFile: false,
     logLevel: 'silent',
-    plugins: [loa()],
+    plugins: [threeify()],
     server: { host: '127.0.0.1', port: 0, watch: null },
   });
-  const virtual = () => server.transformRequest('virtual:loa');
+  const virtual = () => server.transformRequest('virtual:threeify');
   try {
     await server.listen();
     expect((await virtual())!.code).toContain(native.remoteUrl);
@@ -370,10 +373,10 @@ it('reloads the development map as installed files and overrides appear and disa
     root,
     configFile: false,
     logLevel: 'silent',
-    plugins: [loa()],
+    plugins: [threeify()],
     server: { host: '127.0.0.1', port: 0 },
   });
-  const virtual = () => server.transformRequest('virtual:loa');
+  const virtual = () => server.transformRequest('virtual:threeify');
   try {
     await server.listen();
     expect((await virtual())!.code).toContain(native.remoteUrl);

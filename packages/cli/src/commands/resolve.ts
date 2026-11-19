@@ -29,24 +29,29 @@ export const command = defineCommand({
       project.root,
     );
     const map = buildResolution(lock, { mode: argv.mode === 'auto' ? 'remote' : argv.mode, baseUrl: argv.baseUrl });
-    if (argv.mode === 'auto') {
-      const local = buildResolution(lock, { mode: 'local', baseUrl: argv.baseUrl });
-      for (const importer of Object.values(lock.importers))
-        for (const [alias, entry] of Object.entries(importer.assets)) {
-          if (entry.kind === 'file') continue;
-          const path = join(project.root, relativeAssetPath(entry, alias));
-          try {
-            if (!(await stat(path)).isFile()) continue;
-          } catch (error) {
-            if (['ENOENT', 'ENOTDIR'].includes((error as NodeJS.ErrnoException).code ?? '')) continue;
-            throw error;
-          }
-          if (entry.kind === 'loa' && (await hashFileSha256(path)) !== nativeHashHex(entry.hash)) {
-            throw new Error(`Local asset integrity mismatch: ${path}; run threeify pull to repair it`);
-          }
-          map[alias] = local[alias]!;
+    const local = buildResolution(lock, { mode: 'local', baseUrl: argv.baseUrl });
+    for (const importer of Object.values(lock.importers))
+      for (const [alias, entry] of Object.entries(importer.dependencies)) {
+        // Local dependencies are checked in every mode; plain ones only when auto-detecting.
+        if (entry.kind === 'file' || (entry.mode ?? argv.mode) !== (entry.mode === 'local' ? 'local' : 'auto'))
+          continue;
+        const path = join(project.root, relativeAssetPath(entry, alias));
+        let installed = false;
+        try {
+          installed = (await stat(path)).isFile();
+        } catch (error) {
+          if (!['ENOENT', 'ENOTDIR'].includes((error as NodeJS.ErrnoException).code ?? '')) throw error;
         }
-    }
+        if (!installed) {
+          if (entry.mode === 'local')
+            throw new Error(`Local dependency is not installed: ${alias}; run threeify install first`);
+          continue;
+        }
+        if (entry.kind === 'loa' && (await hashFileSha256(path)) !== nativeHashHex(entry.hash)) {
+          throw new Error(`Local asset integrity mismatch: ${path}; run threeify pull to repair it`);
+        }
+        map[alias] = local[alias]!;
+      }
     const output = argv.output ? resolve(argv.output) : join(project.root, 'asset-resolution.json');
     await atomicWrite(output, JSON.stringify(map, null, 2) + '\n');
     deps.logger.info(`Wrote ${output}`);

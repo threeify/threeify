@@ -7,7 +7,8 @@ import { getCliDeps } from '../lib/deps.ts';
 export const command = defineCommand({
   command: 'pull',
   aliases: ['install'],
-  describe: 'Pull locked native assets and direct URLs locally; leave file: references live',
+  describe:
+    'Pull locked native assets and direct URLs locally; skip remoteDependencies and leave file: references live',
   builder: (yargs) =>
     yargs.options({
       parallel: { type: 'number', default: 8, description: 'Concurrent metadata, download, and installation tasks' },

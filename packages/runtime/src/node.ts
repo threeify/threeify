@@ -1,9 +1,10 @@
 import { createHash } from 'node:crypto';
 import { isAbsolute, posix, resolve, relative } from 'node:path';
 import { readFileSync, statSync } from 'node:fs';
-import type { LockedAsset, Lockfile, NativeAsset, Resolution, ResolveMode } from './types.js';
+import type { DependencyMode, LockedAsset, Lockfile, NativeAsset, Resolution, ResolveMode } from './types.js';
 export type {
   Manifest,
+  DependencyMode,
   NativeAsset,
   UrlAsset,
   FileAsset,
@@ -56,7 +57,9 @@ function extension(value: unknown): string {
 }
 export function parseLockfile(value: unknown): Lockfile {
   const input = object(value);
-  if (input.lockfileVersion !== 1) throw new Error('Unsupported assets-lock.json version');
+  // Version 1 named the importer map `assets` and had no per-binding mode.
+  if (input.lockfileVersion !== 1 && input.lockfileVersion !== 2)
+    throw new Error('Unsupported assets-lock.json version');
   const importers: Lockfile['importers'] = Object.create(null);
   for (const [directory, rawImporter] of Object.entries(object(input.importers))) {
     string(directory, 'importer directory');
@@ -71,10 +74,13 @@ export function parseLockfile(value: unknown): Lockfile {
       throw new Error(`Invalid importer path: ${directory}`);
     const importer = object(rawImporter);
     const assets: Record<string, LockedAsset> = Object.create(null);
-    for (const [alias, rawEntry] of Object.entries(object(importer.assets))) {
+    for (const [alias, rawEntry] of Object.entries(object(importer.dependencies ?? importer.assets))) {
       string(alias, 'alias');
       const entry = object(rawEntry);
       const specifier = string(entry.specifier, 'specifier');
+      if (entry.mode !== undefined && entry.mode !== 'local' && entry.mode !== 'remote')
+        throw new Error(`Invalid lockfile mode for ${alias}`);
+      const mode: { mode?: DependencyMode } = entry.mode === undefined ? {} : { mode: entry.mode };
       if (entry.kind === 'loa') {
         const native: NativeAsset = {
           kind: 'loa',
@@ -85,6 +91,7 @@ export function parseLockfile(value: unknown): Lockfile {
           hash: string(entry.hash, 'hash'),
           remoteUrl: string(entry.remoteUrl, 'remoteUrl'),
           extension: extension(entry.extension),
+          ...mode,
         };
         assertNativeAsset(native);
         assets[alias] = native;
@@ -92,18 +99,19 @@ export function parseLockfile(value: unknown): Lockfile {
         const url = string(entry.url, 'url');
         if (httpUrl(specifier).href !== httpUrl(url).href)
           throw new Error('Direct URL must match its manifest specifier');
-        assets[alias] = { kind: 'url', specifier, url, extension: extension(entry.extension) };
+        assets[alias] = { kind: 'url', specifier, url, extension: extension(entry.extension), ...mode };
       } else if (entry.kind === 'file') {
         const path = string(entry.path, 'path');
         if (isAbsolute(path) || /^[a-z]:/i.test(path) || path.includes('\\'))
           throw new Error('file: references must use portable relative paths');
         if (specifier !== `file:${path}`) throw new Error('File path must match its manifest specifier');
-        assets[alias] = { kind: 'file', specifier, path };
+        if (entry.mode === 'remote') throw new Error(`file: reference cannot be a remote dependency: ${alias}`);
+        assets[alias] = { kind: 'file', specifier, path, ...(entry.mode === 'local' ? { mode: 'local' } : {}) };
       } else throw new Error(`Unknown asset source: ${String(entry.kind)}`);
     }
-    importers[directory] = { name: string(importer.name, 'name'), assets };
+    importers[directory] = { name: string(importer.name, 'name'), dependencies: assets };
   }
-  return { lockfileVersion: 1, importers };
+  return { lockfileVersion: 2, importers };
 }
 export function urlHash(value: string): string {
   return createHash('sha256').update(value).digest('hex');
@@ -149,8 +157,9 @@ export function assetInstallPaths(lock: Lockfile): Map<string, Exclude<LockedAss
   const paths = new Map<string, Exclude<LockedAsset, { kind: 'file' }>>();
   const identities = new Map<string, string>();
   for (const importer of Object.values(lock.importers)) {
-    for (const [alias, entry] of Object.entries(importer.assets)) {
-      if (entry.kind === 'file') continue;
+    for (const [alias, entry] of Object.entries(importer.dependencies)) {
+      // Remote dependencies are never installed, so they claim no local path.
+      if (entry.kind === 'file' || entry.mode === 'remote') continue;
       const identity = assetSourceKey(entry);
       for (const path of [relativeAliasPath(alias, entry)]) {
         // Reject case collisions as well, for portable checkouts on Windows and macOS.
@@ -194,19 +203,24 @@ export function applyLocalOverrides(lock: Lockfile, root: string): Lockfile {
       /^[a-z]:/i.test(raw.slice(5))
     )
       throw new Error(`Local override ${alias} must be a portable relative file: reference`);
-    const owner = Object.entries(result.importers).filter(([, importer]) => Object.hasOwn(importer.assets, alias));
+    const owner = Object.entries(result.importers).filter(([, importer]) =>
+      Object.hasOwn(importer.dependencies, alias),
+    );
     if (owner.length !== 1) throw new Error(`Unknown or duplicate local override alias: ${alias}`);
     const [directory, importer] = owner[0]!;
     const absolute = resolve(root, raw.slice(5));
     if (!statSync(absolute).isFile()) throw new Error(`Local override is not a file: ${alias}`);
     const path = relative(resolve(root, directory), absolute).split('\\').join('/');
-    importer.assets[alias] = { kind: 'file', specifier: `file:${path}`, path };
+    importer.dependencies[alias] = { kind: 'file', specifier: `file:${path}`, path };
   }
   return result;
 }
 
 export function isLocalAsset(root: string, entry: LockedAsset, mode: ResolveMode, alias?: string): boolean {
-  if (entry.kind === 'file' || mode === 'local') return true;
+  // The manifest list wins over the requested mode: local dependencies never go remote, and vice versa.
+  if (entry.kind === 'file' || entry.mode === 'local') return true;
+  if (entry.mode === 'remote') return false;
+  if (mode === 'local') return true;
   if (mode === 'remote') return false;
   try {
     return statSync(resolve(root, relativeAssetPath(entry, alias))).isFile();
@@ -218,7 +232,7 @@ export function isLocalAsset(root: string, entry: LockedAsset, mode: ResolveMode
 
 /** URL served by the Vite plugin for precisely this locked local file. */
 export function liveAssetUrl(importer: string, alias: string): string {
-  return `__loa/live/${urlHash(`${importer}\0${alias}`)}`;
+  return `__threeify/live/${urlHash(`${importer}\0${alias}`)}`;
 }
 export function buildResolution(
   lock: Lockfile,
@@ -228,7 +242,7 @@ export function buildResolution(
   const result: Resolution = Object.create(null);
   const prefix = baseUrl.endsWith('/') ? baseUrl : `${baseUrl}/`;
   for (const [directory, importer] of Object.entries(lock.importers)) {
-    for (const [alias, entry] of Object.entries(importer.assets)) {
+    for (const [alias, entry] of Object.entries(importer.dependencies)) {
       if (Object.hasOwn(result, alias)) throw new Error(`Duplicate workspace asset alias: ${alias}`);
       result[alias] =
         entry.kind === 'file'

@@ -12,7 +12,7 @@ if (!Number.isInteger(parallel) || parallel < 1) throw new Error('parallel must 
 const lock = JSON.parse(await readFile(join(source, 'assets-lock.json'), 'utf8'));
 if (
   Object.keys(lock.importers).some((key) => key !== '.') ||
-  Object.values(lock.importers['.'].assets).some((entry) => entry.kind !== 'loa')
+  Object.values(lock.importers['.'].dependencies).some((entry) => entry.kind !== 'loa')
 ) {
   throw new Error('Use a single-manifest project with only native assets for comparable cache measurements.');
 }
@@ -53,7 +53,7 @@ try {
         node: process.version,
         platform: `${platform()} ${release()} ${arch()}`,
         parallel,
-        sources: Object.keys(lock.importers['.'].assets).length,
+        sources: Object.keys(lock.importers['.'].dependencies).length,
         samples,
       },
       null,

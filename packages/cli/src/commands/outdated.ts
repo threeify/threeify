@@ -13,7 +13,7 @@ export const command = defineCommand({
     const lock = await resolveProject(project, (await getConfig(deps)).host, { frozen: true });
     const rows: { alias: string; current: string; latest: string }[] = [];
     for (const importer of Object.values(lock.importers))
-      for (const [alias, entry] of Object.entries(importer.assets)) {
+      for (const [alias, entry] of Object.entries(importer.dependencies)) {
         if (entry.kind !== 'loa') continue;
         const latest = await registry.resolve(entry.host, entry.ref, 'latest');
         const currentParts = entry.version.split('.').map(Number);

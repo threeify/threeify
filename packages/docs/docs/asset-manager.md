@@ -10,7 +10,7 @@ Build with a shared asset library without filling your Git repository with large
 
 Pin an immutable version so a new upload cannot unexpectedly change your scene. Review asset updates alongside the code that uses them, try a different chair or lighting rig on a feature branch, and return to the previous selection when needed. Teammates and CI can install the same verified native assets, with a shared cache that avoids downloading identical bytes for every project.
 
-Install assets locally and load them through ordinary URLs, without an adapter or runtime package. You can also load from the cloud or use the optional runtime integration to switch between local and remote sources. Mix published LoA assets with direct URLs and live local files as you develop.
+Install assets locally and load them through ordinary URLs, without an adapter or runtime package. You can also load from the cloud or use the optional runtime integration to switch between local and remote sources. Mix published Threeify assets with direct URLs and live local files as you develop.
 
 ## Select assets with your code
 
@@ -26,7 +26,7 @@ The CLI writes `assets.json` and `assets-lock.json`. Commit both with your code.
 ```json
 {
   "name": "showroom",
-  "assets": {
+  "dependencies": {
     "chair": "acme/furniture/chair@2.3.0"
   }
 }
@@ -37,7 +37,7 @@ Keys determine the installed paths under `assets/`, with the source extension ap
 ```json
 {
   "name": "showroom",
-  "assets": {
+  "dependencies": {
     "acme/furniture/chair": "0.5.6",
     "chair": "acme/furniture/chair@0.6.0"
   }
@@ -45,6 +45,42 @@ Keys determine the installed paths under `assets/`, with the source extension ap
 ```
 
 These selections install as `/assets/acme/furniture/chair.glb` and `/assets/chair.glb`. Updating the manifest and running `threeify install` replaces the selected bytes at the same URLs. The lockfile always records full references, exact versions, and content hashes.
+
+## Choose where each dependency loads from
+
+`assets.json` has three lists, named after npm's dependency fields. They share one binding namespace, so a key can appear in only one of them:
+
+| List                 | `threeify install` | Resolved URL                           |
+| -------------------- | ------------------ | -------------------------------------- |
+| `dependencies`       | Installed          | Local when installed, remote otherwise |
+| `localDependencies`  | Installed          | Always the local `/assets/...` path    |
+| `remoteDependencies` | Never installed    | Always the remote URL                  |
+
+```json
+{
+  "name": "showroom",
+  "dependencies": {
+    "chair": "acme/furniture/chair@2.3.0"
+  },
+  "localDependencies": {
+    "logo": "acme/brand/logo@1.0.0"
+  },
+  "remoteDependencies": {
+    "showroom-scan": "acme/scans/showroom@4.1.0"
+  }
+}
+```
+
+Most bindings belong in `dependencies`. Use `localDependencies` for assets your application loads through static `/assets/...` URLs: they have a fixed local path, so they need no runtime or resolution map, and [`threeify resolve`](./cli/threeify-resolve.md) fails if one is not installed. Use `remoteDependencies` for assets that should never be downloaded into the project, such as very large files streamed from the cloud; load them through the resolution map. Remote dependencies are still version-pinned in the lockfile. Live `file:` references cannot be remote dependencies.
+
+Choose the list when adding a dependency; re-adding an existing key moves it:
+
+```sh
+threeify add acme/brand/logo@1.0.0 --as logo --local
+threeify add acme/scans/showroom@4.1.0 --as showroom-scan --remote
+```
+
+Manifests and lockfiles written by earlier versions, which used a single `assets` list, are still read; the CLI rewrites them with `dependencies` the next time it saves them.
 
 ## Choose a source
 
@@ -67,14 +103,14 @@ threeify install
 
 Installation uses one FIFO task queue. Metadata tasks enqueue native downloads as soon as their results arrive, allowing downloads and remaining metadata lookups to overlap. Up to eight tasks run at once across the workspace; use `threeify install --parallel 16` to change that shared limit. Matching lockfile entries skip metadata requests, and verified global-cache files skip downloads.
 
-Every installed asset uses its manifest key: `assets/<key><extension>`. There are only two places for native asset bytes: the shared global cache and the project's `assets/` directory. There is no project-local versioned store.
+Installation covers `dependencies` and `localDependencies`; `remoteDependencies` are never downloaded or linked, and a binding moved to that list is pruned from `assets/`. Every installed asset uses its manifest key: `assets/<key><extension>`. There are only two places for native asset bytes: the shared global cache and the project's `assets/` directory. There is no project-local versioned store.
 
 For two keys selecting the same native version:
 
 ```json
 {
   "name": "showroom",
-  "assets": {
+  "dependencies": {
     "acme/furniture/chair": "2.3.0",
     "chair": "acme/furniture/chair@2.3.0"
   }
@@ -112,7 +148,7 @@ Direct HTTP(S) sources also install at `assets/<key><extension>`, without integr
 
 ## Integrate using a resolution map
 
-Use the optional runtime when you want cloud loading, automatic local/remote selection, or live local overrides. `loaResolver` turns a JSON map of binding names to URLs into a resolver. It always returns a promise and takes an in-memory map (`{ resolution }`). Your application loads the map before initializing the resolver; the resolver does not fetch it.
+Use the optional runtime when you want cloud loading, automatic local/remote selection, or live local overrides. `threeifyResolver` turns a JSON map of binding names to URLs into a resolver. It always returns a promise and takes an in-memory map (`{ resolution }`). Your application loads the map before initializing the resolver; the resolver does not fetch it.
 
 Install the runtime:
 
@@ -120,7 +156,7 @@ Install the runtime:
 npm install @threeify/runtime
 ```
 
-Use [`threeify resolve`](./cli/threeify-resolve.md) to export `asset-resolution.json`. It prefers locally installed files where present and remote URLs otherwise. The map associates each binding name with its resolved URL, for example:
+Use [`threeify resolve`](./cli/threeify-resolve.md) to export `asset-resolution.json`. For `dependencies` it prefers locally installed files where present and remote URLs otherwise; `localDependencies` always map to local URLs and `remoteDependencies` to remote URLs, whatever the mode. The map associates each binding name with its resolved URL, for example:
 
 ```json
 {
@@ -132,17 +168,17 @@ Serve the map with your application, then fetch and parse it before creating the
 
 ```ts
 import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
-import { loaResolver } from '@threeify/runtime';
+import { threeifyResolver } from '@threeify/runtime';
 
 const response = await fetch('/asset-resolution.json');
 if (!response.ok) throw new Error(`Could not load asset map: HTTP ${response.status}`);
 const resolution = await response.json();
-const assets = await loaResolver({ resolution });
+const assets = await threeifyResolver({ resolution });
 
 new GLTFLoader().load(assets.url('chair'), (gltf) => scene.add(gltf.scene));
 ```
 
-`assets.url('chair')` returns the URL for that binding, ready to pass to any loader. Binding names do not need a `loa:` prefix. See the [`resolve` reference](./cli/threeify-resolve.md) for mode overrides, serving local files, and regenerating the map.
+`assets.url('chair')` returns the URL for that binding, ready to pass to any loader. Binding names do not need a `threeify:` prefix. See the [`resolve` reference](./cli/threeify-resolve.md) for mode overrides, serving local files, and regenerating the map.
 
 If you prefer passing an alias directly to a three.js loader, register the optional URL modifier:
 
@@ -151,21 +187,21 @@ import { LoadingManager } from 'three';
 
 const manager = new LoadingManager();
 manager.setURLModifier(assets.urlModifier);
-new GLTFLoader(manager).load('loa:chair', (gltf) => scene.add(gltf.scene));
+new GLTFLoader(manager).load('threeify:chair', (gltf) => scene.add(gltf.scene));
 ```
 
-Only this URL-modifier form requires `loa:`. The modifier receives every loader URL; the prefix distinguishes asset bindings from ordinary URLs and relative paths for textures, decoders, and other resources, which pass through unchanged. `loader.load('chair')` alone does not resolve a binding; use `loader.load(assets.url('chair'))` to avoid the prefix.
+Only this URL-modifier form requires `threeify:`. The modifier receives every loader URL; the prefix distinguishes asset bindings from ordinary URLs and relative paths for textures, decoders, and other resources, which pass through unchanged. `loader.load('chair')` alone does not resolve a binding; use `loader.load(assets.url('chair'))` to avoid the prefix.
 
 ### Vite
 
-The Vite plugin provides the resolution map through `virtual:loa`, so your application can import it instead of fetching a JSON file. Add the plugin to `vite.config.ts`:
+The Vite plugin provides the resolution map through `virtual:threeify`, so your application can import it instead of fetching a JSON file. Add the plugin to `vite.config.ts`:
 
 ```ts
 import { defineConfig } from 'vite';
-import { loa } from '@threeify/runtime/vite';
+import { threeify } from '@threeify/runtime/vite';
 
 export default defineConfig({
-  plugins: [loa()],
+  plugins: [threeify()],
 });
 ```
 
@@ -181,18 +217,18 @@ Then resolve the binding name before passing its URL to a loader:
 
 ```ts
 import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
-import { loaResolver } from '@threeify/runtime';
-import resolution from 'virtual:loa';
+import { threeifyResolver } from '@threeify/runtime';
+import resolution from 'virtual:threeify';
 
-const assets = await loaResolver({ resolution });
+const assets = await threeifyResolver({ resolution });
 new GLTFLoader().load(assets.url('chair'), (gltf) => scene.add(gltf.scene));
 ```
 
-Both examples use the same `loaResolver({ resolution })` API; Vite supplies the map through an import instead of an application-managed JSON request.
+Both examples use the same `threeifyResolver({ resolution })` API; Vite supplies the map through an import instead of an application-managed JSON request.
 
 ## Try unpublished changes
 
-Keep application code using stable aliases such as `loa:chair`. The manifest and lockfile select the published version; the loader never needs its version number or canonical registry name.
+Keep application code using stable aliases such as `threeify:chair`. The manifest and lockfile select the published version; the loader never needs its version number or canonical registry name.
 
 For a local experiment, create `assets.local.json` beside the root lockfile:
 
@@ -231,7 +267,7 @@ Large projects can keep an `assets.json` in each level, area, or package and lis
 ```json
 {
   "name": "world",
-  "assets": {},
+  "dependencies": {},
   "workspaces": ["levels/*"]
 }
 ```
