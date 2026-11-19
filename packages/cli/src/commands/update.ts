@@ -1,5 +1,5 @@
 import { defineCommand } from 'yargs-file-commands';
-import { loadProject, registry, resolveProject, saveProject } from '../lib/asset-manager/project.ts';
+import { bindings, loadProject, registry, resolveProject, saveProject } from '../lib/asset-manager/project.ts';
 import { getConfig } from '../lib/config.ts';
 import { getCliDeps } from '../lib/deps.ts';
 
@@ -24,7 +24,7 @@ export const command = defineCommand({
     const changed = new Set<string>();
     let found = argv.alias === undefined;
     for (const [key, importer] of Object.entries(previous.importers)) {
-      for (const [alias, entry] of Object.entries(importer.assets)) {
+      for (const [alias, entry] of Object.entries(importer.dependencies)) {
         if (argv.alias !== undefined && argv.alias !== alias) continue;
         found = true;
         if (entry.kind !== 'loa') continue;
@@ -32,10 +32,9 @@ export const command = defineCommand({
         if (argv.latest) {
           const latest = await registry.resolve(entry.host, entry.ref, 'latest');
           const specifier = `${entry.ref}@${latest.version}`;
-          const current = project.manifests[key]!.assets[alias]!;
-          project.manifests[key]!.assets[alias] =
-            alias === entry.ref && !current.includes('/') ? latest.version : specifier;
-          importer.assets[alias] = { ...entry, ...latest, specifier };
+          const binding = bindings(project.manifests[key]!).find((item) => item.alias === alias)!;
+          binding.list[alias] = alias === entry.ref && !binding.specifier.includes('/') ? latest.version : specifier;
+          importer.dependencies[alias] = { ...entry, ...latest, specifier };
           update.delete(alias);
           changed.add(key);
         }

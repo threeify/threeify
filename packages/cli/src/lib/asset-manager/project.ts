@@ -11,10 +11,33 @@ import {
   assetVersionSelectorSchema,
   assetVersionSchema,
 } from '@threeify/sdk';
-import { parseLockfile, type Lockfile, type LockedAsset } from '@threeify/runtime/node';
+import {
+  parseLockfile,
+  type DependencyMode,
+  type Lockfile,
+  type LockedAsset,
+  type Manifest,
+} from '@threeify/runtime/node';
 import type { ScheduleTask } from './task-queue.ts';
 
-export type Manifest = { name: string; assets: Record<string, string>; workspaces?: string[] };
+export type { Manifest };
+
+/** Manifest lists and the resolution side each one pins its bindings to. */
+export const dependencyLists = [
+  ['dependencies', undefined],
+  ['localDependencies', 'local'],
+  ['remoteDependencies', 'remote'],
+] as const;
+
+type Binding = { alias: string; specifier: string; mode?: DependencyMode; list: Record<string, string> };
+
+/** Every binding of a manifest, across all three lists. `list` is the owning map, for edits. */
+export function bindings(manifest: Manifest): Binding[] {
+  return dependencyLists.flatMap(([key, mode]) => {
+    const list = manifest[key] ?? {};
+    return Object.entries(list).map(([alias, specifier]) => ({ alias, specifier, mode, list }));
+  });
+}
 export type Project = { root: string; current: string; manifests: Record<string, Manifest>; lock?: Lockfile };
 export type Registry = {
   resolve: (
@@ -78,12 +101,25 @@ function object(value: unknown): value is Record<string, unknown> {
 }
 
 function parseManifest(value: unknown): Manifest {
-  if (!object(value) || typeof value.name !== 'string' || !value.name.trim() || !object(value.assets)) {
-    throw new Error('assets.json requires a name and an assets object');
+  // Manifests written before the dependency lists used a single `assets` map.
+  if (object(value) && value.dependencies === undefined && object(value.assets)) {
+    value.dependencies = value.assets;
+    delete value.assets;
   }
-  for (const [alias, specifier] of Object.entries(value.assets)) {
-    validateAlias(alias);
-    if (typeof specifier !== 'string' || !specifier) throw new Error(`Invalid source for ${alias}`);
+  if (!object(value) || typeof value.name !== 'string' || !value.name.trim() || !object(value.dependencies)) {
+    throw new Error('assets.json requires a name and a dependencies object');
+  }
+  const aliases = new Set<string>();
+  for (const [key] of dependencyLists) {
+    const list = value[key];
+    if (list === undefined) continue;
+    if (!object(list)) throw new Error(`assets.json ${key} must be an object`);
+    for (const [alias, specifier] of Object.entries(list)) {
+      validateAlias(alias);
+      if (typeof specifier !== 'string' || !specifier) throw new Error(`Invalid source for ${alias}`);
+      if (aliases.has(alias)) throw new Error(`Duplicate asset alias across dependency lists: ${alias}`);
+      aliases.add(alias);
+    }
   }
   if (
     value.workspaces !== undefined &&
@@ -94,7 +130,7 @@ function parseManifest(value: unknown): Manifest {
   ) {
     throw new Error('workspaces must contain relative directory globs within the project');
   }
-  return value as Manifest;
+  return value as unknown as Manifest;
 }
 
 async function readManifest(directory: string): Promise<Manifest | undefined> {
@@ -135,7 +171,7 @@ async function manifestsAt(root: string, manifest: Manifest): Promise<Record<str
     names.add(child.name);
     if (key !== '.' && child.workspaces?.length)
       throw new Error(`Nested workspace declarations are unsupported: ${key}`);
-    for (const alias of Object.keys(child.assets)) {
+    for (const { alias } of bindings(child)) {
       if (aliases.has(alias)) throw new Error(`Duplicate asset alias across workspaces: ${alias}`);
       aliases.add(alias);
     }
@@ -157,7 +193,7 @@ export async function loadProject(cwd = process.cwd(), create = false): Promise<
   if (!nearest) {
     if (!create) throw new Error('No assets.json found. Run threeify add to initialize this project.');
     const root = resolve(cwd);
-    return { root, current: '.', manifests: { '.': { name: basename(root), assets: {} } } };
+    return { root, current: '.', manifests: { '.': { name: basename(root), dependencies: {} } } };
   }
   let root = nearest.directory;
   let manifests = await manifestsAt(root, nearest.manifest);
@@ -221,22 +257,24 @@ export async function resolveProject(
   } = {},
 ): Promise<Lockfile> {
   if (options.frozen && !project.lock) throw new Error('Frozen lockfile requested but assets-lock.json is missing');
-  const lock: Lockfile = { lockfileVersion: 1, importers: Object.create(null) };
+  const lock: Lockfile = { lockfileVersion: 2, importers: Object.create(null) };
   const limit: ScheduleTask = options.schedule ?? pLimit(options.parallel ?? 8);
   const pending: Promise<{ directory: string; alias: string; entry: LockedAsset }>[] = [];
   for (const key of Object.keys(project.manifests).toSorted()) {
     const manifest = project.manifests[key]!;
     const previous = project.lock?.importers[key];
-    lock.importers[key] = { name: manifest.name, assets: Object.create(null) };
-    for (const alias of Object.keys(manifest.assets).toSorted()) {
+    lock.importers[key] = { name: manifest.name, dependencies: Object.create(null) };
+    const sorted = bindings(manifest).toSorted((a, b) => (a.alias < b.alias ? -1 : 1));
+    for (const { alias, specifier: value, mode } of sorted) {
       pending.push(
         limit(async () => {
-          const value = manifest.assets[alias]!;
+          if (mode === 'remote' && value.startsWith('file:'))
+            throw new Error(`file: reference cannot be a remote dependency: ${alias}`);
           const specifier =
             /^(?:[0-9]+(?:\.[0-9]+){0,2}|latest)$/.test(value) && alias.split('/').length === 3
               ? `${alias}@${value}`
               : value;
-          const old = previous?.assets[alias];
+          const old = previous?.dependencies[alias];
           let matches = old?.specifier === specifier;
           if (matches && old?.kind === 'loa') {
             const selected = parseRef(specifier);
@@ -253,6 +291,9 @@ export async function resolveProject(
             if (options.frozen) throw new Error(`Frozen lockfile differs from assets.json: ${key}/${alias}`);
             entry = await resolveSource(specifier, old?.kind === 'loa' ? old.host : host, options.api);
           }
+          // The list a binding sits in can change without its source changing.
+          const { mode: _previousMode, ...source } = entry;
+          entry = (mode ? { ...source, mode } : source) as LockedAsset;
           options.onResolved?.(entry);
           return { directory: key, alias, entry };
         }),
@@ -267,7 +308,7 @@ export async function resolveProject(
   for (const result of results) {
     if (result.status !== 'fulfilled') continue;
     const { directory, alias, entry } = result.value;
-    lock.importers[directory]!.assets[alias] = entry;
+    lock.importers[directory]!.dependencies[alias] = entry;
   }
   if (options.frozen && JSON.stringify(lock) !== JSON.stringify(project.lock)) {
     // Compare canonical output because user-edited key order is not a semantic change.
@@ -286,8 +327,14 @@ function assetLines(assets: Record<string, unknown>, indent: string): string {
 }
 
 export function serializeManifest(manifest: Manifest): string {
-  const assets = assetLines(manifest.assets, '    ');
-  return `{\n  "name": ${JSON.stringify(manifest.name)},\n  "assets": {${assets ? `\n${assets}\n  ` : ''}}${
+  // `dependencies` is always written; the pinned lists only when they have bindings.
+  const lists = dependencyLists
+    .filter(([key]) => key === 'dependencies' || Object.keys(manifest[key] ?? {}).length)
+    .map(([key]) => {
+      const lines = assetLines(manifest[key] ?? {}, '    ');
+      return `  "${key}": {${lines ? `\n${lines}\n  ` : ''}}`;
+    });
+  return `{\n  "name": ${JSON.stringify(manifest.name)},\n${lists.join(',\n')}${
     manifest.workspaces ? `,\n  "workspaces": ${JSON.stringify(manifest.workspaces)}` : ''
   }\n}\n`;
 }
@@ -297,11 +344,11 @@ export function serializeLock(lock: Lockfile): string {
     .toSorted()
     .map((key) => {
       const importer = lock.importers[key]!;
-      const assets = assetLines(importer.assets, '        ');
-      return `    ${JSON.stringify(key)}: {\n      "name": ${JSON.stringify(importer.name)},\n      "assets": {${assets ? `\n${assets}\n      ` : ''}}\n    }`;
+      const assets = assetLines(importer.dependencies, '        ');
+      return `    ${JSON.stringify(key)}: {\n      "name": ${JSON.stringify(importer.name)},\n      "dependencies": {${assets ? `\n${assets}\n      ` : ''}}\n    }`;
     })
     .join(',\n');
-  return `{\n  "lockfileVersion": 1,\n  "importers": {${importers ? `\n${importers}\n  ` : ''}}\n}\n`;
+  return `{\n  "lockfileVersion": 2,\n  "importers": {${importers ? `\n${importers}\n  ` : ''}}\n}\n`;
 }
 
 export async function atomicWrite(path: string, contents: string): Promise<void> {
@@ -342,6 +389,7 @@ export async function addAsset(
   cwd: string,
   host: string,
   api: Registry = registry,
+  mode?: DependencyMode,
 ): Promise<void> {
   const project = await loadProject(cwd, true);
   let specifier = input;
@@ -376,19 +424,24 @@ export async function addAsset(
       if (resolved.kind !== 'loa') throw new Error('Expected native asset');
       specifier = `${parsed.ref}@${resolved.version}`;
       // Reuse the exact resolution so adding an unversioned ref requires one metadata request.
-      project.lock ??= { lockfileVersion: 1, importers: Object.create(null) };
-      project.lock.importers[project.current] ??= { name: project.manifests[project.current]!.name, assets: {} };
-      project.lock.importers[project.current]!.assets[alias] = { ...resolved, specifier };
+      project.lock ??= { lockfileVersion: 2, importers: Object.create(null) };
+      project.lock.importers[project.current] ??= {
+        name: project.manifests[project.current]!.name,
+        dependencies: {},
+      };
+      project.lock.importers[project.current]!.dependencies[alias] = { ...resolved, specifier };
     }
   }
   validateAlias(alias);
   for (const [key, manifest] of Object.entries(project.manifests)) {
-    if (key !== project.current && Object.hasOwn(manifest.assets, alias))
+    if (key !== project.current && bindings(manifest).some((binding) => binding.alias === alias))
       throw new Error(`Duplicate workspace alias: ${alias}`);
   }
-  project.manifests[project.current]!.assets[alias] = specifier.startsWith(`${alias}@`)
-    ? specifier.slice(alias.length + 1)
-    : specifier;
+  const manifest = project.manifests[project.current]!;
+  // Re-adding an alias moves it to the requested list.
+  for (const [key] of dependencyLists) delete manifest[key]?.[alias];
+  const list = dependencyLists.find(([, listMode]) => listMode === mode)![0];
+  (manifest[list] ??= {})[alias] = specifier.startsWith(`${alias}@`) ? specifier.slice(alias.length + 1) : specifier;
   const lock = await resolveProject(project, host, { api });
   await saveProject(project, lock, [project.current]);
   await ignoreLocalAssets(project.root);

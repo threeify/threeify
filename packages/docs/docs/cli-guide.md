@@ -55,7 +55,7 @@ Native refs are hash-verified and downloaded into a global store, then linked di
 
 | Command                                                                | Purpose                                                                   |
 | ---------------------------------------------------------------------- | ------------------------------------------------------------------------- |
-| `threeify add <source> [--as alias]`                                   | Add a native ref, direct URL, or local file; update the manifest and lock |
+| `threeify add <source> [--as alias] [--local\|--remote]`               | Add a native ref, direct URL, or local file; update the manifest and lock |
 | `threeify remove <alias>`                                              | Remove a declaration and its lock entry                                   |
 | `threeify pull [--frozen-lockfile] [--refresh]`                        | Materialize locked assets; frozen mode requires matching declarations     |
 | `threeify update [alias] [--latest]`                                   | Re-resolve selectors, or update pins to latest                            |

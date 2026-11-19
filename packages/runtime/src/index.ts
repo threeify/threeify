@@ -1,6 +1,7 @@
 import type { Resolution } from './types.js';
 export type {
   Manifest,
+  DependencyMode,
   NativeAsset,
   UrlAsset,
   FileAsset,

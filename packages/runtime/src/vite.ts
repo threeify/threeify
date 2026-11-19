@@ -91,7 +91,7 @@ export function loa(options: LoaPluginOptions = {}): Plugin {
       if (!building) return `export default JSON.parse(${JSON.stringify(JSON.stringify(resolution))});`;
       const entries: string[] = [];
       for (const [directory, importer] of Object.entries(lock.importers)) {
-        for (const [alias, entry] of Object.entries(importer.assets)) {
+        for (const [alias, entry] of Object.entries(importer.dependencies)) {
           if (!isLocalAsset(root, entry, mode, alias)) {
             entries.push(`[${JSON.stringify(alias)}]:${JSON.stringify(resolution[alias])}`);
             continue;
@@ -115,8 +115,8 @@ export function loa(options: LoaPluginOptions = {}): Plugin {
         routes = new Map();
         const prefix = new URL(base, 'http://loa.local/').pathname.replace(/\/$/, '');
         for (const [directory, importer] of Object.entries(lock.importers)) {
-          for (const [alias, entry] of Object.entries(importer.assets)) {
-            if (entry.kind !== 'file' && mode === 'remote') continue;
+          for (const [alias, entry] of Object.entries(importer.dependencies)) {
+            if (entry.kind !== 'file' && (entry.mode ?? mode) === 'remote') continue;
             const route = entry.kind === 'file' ? liveAssetUrl(directory, alias) : relativeAssetPath(entry, alias);
             routes.set(`${prefix}/${route}`, { path: localPath(root, directory, entry, alias), entry });
           }

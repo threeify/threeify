@@ -32,11 +32,11 @@ const native: NativeAsset = {
 };
 function lock(): Lockfile {
   return {
-    lockfileVersion: 1,
+    lockfileVersion: 2,
     importers: {
       '.': {
         name: 'showroom',
-        assets: {
+        dependencies: {
           chair: native,
           remote: {
             kind: 'url',
@@ -68,7 +68,7 @@ async function fixture() {
 }
 async function materialize(root: string, value: Lockfile) {
   for (const importer of Object.values(value.importers)) {
-    for (const [alias, entry] of Object.entries(importer.assets)) {
+    for (const [alias, entry] of Object.entries(importer.dependencies)) {
       if (entry.kind === 'file') continue;
       const path = join(root, relativeAssetPath(entry, alias));
       await mkdir(dirname(path), { recursive: true });
@@ -141,7 +141,7 @@ describe('lock resolution', () => {
       ['chair.glb/child', { ...native }],
     ] as const) {
       const value = lock();
-      value.importers['.']!.assets[alias] = entry;
+      value.importers['.']!.dependencies[alias] = entry;
       expect(() => assetInstallPaths(value)).toThrow('Conflicting installed asset');
     }
   });
@@ -150,7 +150,7 @@ describe('lock resolution', () => {
     for (const hash of ['sha256-bad', `sha256-${hex}`, `sha256-${'A'.repeat(42)}B=`])
       expect(() => nativeHashHex(hash)).toThrow();
     const broken = lock();
-    broken.importers['.']!.assets.chair = { ...native, remoteUrl: 'https://evil.example/chair.glb' };
+    broken.importers['.']!.dependencies.chair = { ...native, remoteUrl: 'https://evil.example/chair.glb' };
     expect(() => parseLockfile(broken)).toThrow('must match');
     const invalid = lock();
     invalid.importers['../outside'] = invalid.importers['.']!;
@@ -158,20 +158,20 @@ describe('lock resolution', () => {
   });
   it('rejects bare-version native source shorthand in locks', () => {
     const value = lock();
-    value.importers['.']!.assets.chair = { ...native, specifier: '1.0.0' };
+    value.importers['.']!.dependencies.chair = { ...native, specifier: '1.0.0' };
     expect(() => parseLockfile(value)).toThrow('full org/project/asset ref');
   });
   it('rejects absolute or inconsistent live paths and URL substitutions', () => {
     for (const path of ['/etc/passwd', 'C:/secret.png', '..\\secret.png']) {
       const value = lock();
-      value.importers['.']!.assets.logo = { kind: 'file', specifier: `file:${path}`, path };
+      value.importers['.']!.dependencies.logo = { kind: 'file', specifier: `file:${path}`, path };
       expect(() => parseLockfile(value)).toThrow('portable relative paths');
     }
     const live = lock();
-    live.importers['.']!.assets.logo = { kind: 'file', specifier: 'file:./logo.png', path: '../secret.png' };
+    live.importers['.']!.dependencies.logo = { kind: 'file', specifier: 'file:./logo.png', path: '../secret.png' };
     expect(() => parseLockfile(live)).toThrow('must match');
     const direct = lock();
-    direct.importers['.']!.assets.remote = {
+    direct.importers['.']!.dependencies.remote = {
       kind: 'url',
       specifier: 'https://example.com/original.png',
       url: 'https://other.example/substitution.png',
@@ -179,16 +179,16 @@ describe('lock resolution', () => {
     };
     expect(() => parseLockfile(direct)).toThrow('must match');
     const parent = lock();
-    parent.importers['.']!.assets.logo = {
+    parent.importers['.']!.dependencies.logo = {
       kind: 'file',
       specifier: 'file:../brand/logo.png',
       path: '../brand/logo.png',
     };
-    expect(parseLockfile(parent).importers['.']!.assets.logo!.kind).toBe('file');
+    expect(parseLockfile(parent).importers['.']!.dependencies.logo!.kind).toBe('file');
   });
   it('rejects duplicate aliases across workspaces', () => {
     const value = lock();
-    value.importers['levels/lobby'] = { name: 'lobby', assets: { chair: native } };
+    value.importers['levels/lobby'] = { name: 'lobby', dependencies: { chair: native } };
     expect(() => buildResolution(value, { mode: 'remote' })).toThrow('Duplicate workspace asset alias: chair');
   });
 });
@@ -289,11 +289,11 @@ describe('local-first development', () => {
   });
   it('overrides a workspace alias without changing tracked selections, even in remote mode', async () => {
     const { root, value } = await fixture();
-    value.importers['levels/lobby'] = { name: 'lobby', assets: { couch: native } };
+    value.importers['levels/lobby'] = { name: 'lobby', dependencies: { couch: native } };
     const before = JSON.stringify(value);
     await writeFile(join(root, 'assets.local.json'), JSON.stringify({ overrides: { couch: 'file:./brand/logo.png' } }));
     const overridden = applyLocalOverrides(value, root);
-    expect(overridden.importers['levels/lobby']!.assets.couch).toMatchObject({
+    expect(overridden.importers['levels/lobby']!.dependencies.couch).toMatchObject({
       kind: 'file',
       path: '../../brand/logo.png',
     });
@@ -320,7 +320,10 @@ describe('local-first development', () => {
     const { root, value } = await fixture();
     await materialize(root, value);
     await rm(
-      join(root, relativeAssetPath(value.importers['.']!.assets.remote as import('./types.js').UrlAsset, 'remote')),
+      join(
+        root,
+        relativeAssetPath(value.importers['.']!.dependencies.remote as import('./types.js').UrlAsset, 'remote'),
+      ),
     );
     await writeFile(join(root, 'assets.local.json'), JSON.stringify({ overrides: { chair: 'file:./brand/logo.png' } }));
     const result = await build({

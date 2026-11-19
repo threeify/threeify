@@ -37,7 +37,7 @@ Audited November 17, 2026 against LoA `731f3742ccb5` and the changes accompanyin
 Keep the published selection in the tracked manifest and lockfile, using a short alias:
 
 ```json
-{ "name": "showroom", "assets": { "chair": "acme/models/chair@1.0.0" } }
+{ "name": "showroom", "dependencies": { "chair": "acme/models/chair@1.0.0" } }
 ```
 
 App code always loads `loa:chair`. To experiment, put this in the gitignored workspace-root `assets.local.json`:

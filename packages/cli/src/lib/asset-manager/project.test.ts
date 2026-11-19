@@ -41,7 +41,7 @@ describe('project asset selections', () => {
   it.each([undefined, 2])('bounds metadata lookups across workspaces (parallel=%s)', async (parallel) => {
     await manifest(root, {
       name: 'root',
-      assets: {
+      dependencies: {
         e: 'acme/models/e@2.0.0',
         d: 'acme/models/d@2.0.0',
         c: 'acme/models/c@2.0.0',
@@ -52,7 +52,7 @@ describe('project asset selections', () => {
     });
     await manifest(join(root, 'levels/lobby'), {
       name: 'lobby',
-      assets: {
+      dependencies: {
         j: 'acme/models/j@2.0.0',
         i: 'acme/models/i@2.0.0',
         h: 'acme/models/h@2.0.0',
@@ -87,8 +87,8 @@ describe('project asset selections', () => {
     expect(active).toBe(0);
     expect(concurrent.resolve).toHaveBeenCalledTimes(10);
     expect(Object.keys(lock.importers)).toEqual(['.', 'levels/lobby']);
-    expect(Object.keys(lock.importers['.']!.assets)).toEqual(['a', 'b', 'c', 'd', 'e']);
-    expect(Object.keys(lock.importers['levels/lobby']!.assets)).toEqual(['f', 'g', 'h', 'i', 'j']);
+    expect(Object.keys(lock.importers['.']!.dependencies)).toEqual(['a', 'b', 'c', 'd', 'e']);
+    expect(Object.keys(lock.importers['levels/lobby']!.dependencies)).toEqual(['f', 'g', 'h', 'i', 'j']);
     project.lock = lock;
     vi.mocked(concurrent.resolve).mockClear();
     await expect(resolveProject(project, host, { api: concurrent, parallel, frozen: true })).resolves.toEqual(lock);
@@ -98,7 +98,7 @@ describe('project asset selections', () => {
   it('drains metadata lookups before reporting the first failure', async () => {
     await manifest(root, {
       name: 'root',
-      assets: {
+      dependencies: {
         a: 'acme/models/a@2.0.0',
         b: 'acme/models/b@2.0.0',
         c: 'acme/models/c@2.0.0',
@@ -132,23 +132,28 @@ describe('project asset selections', () => {
   it('pins a native ref with one metadata lookup and no asset download', async () => {
     await addAsset('acme/models/chair', 'chair', root, host, api);
     const project = await loadProject(root);
-    expect(project.manifests['.']!.assets).toEqual({ chair: 'acme/models/chair@2.0.0' });
-    expect(project.lock!.importers['.']!.assets.chair).toMatchObject({ kind: 'loa', hash, version: '2.0.0', host });
+    expect(project.manifests['.']!.dependencies).toEqual({ chair: 'acme/models/chair@2.0.0' });
+    expect(project.lock!.importers['.']!.dependencies.chair).toMatchObject({
+      kind: 'loa',
+      hash,
+      version: '2.0.0',
+      host,
+    });
     expect(api.resolve).toHaveBeenCalledTimes(1);
   });
   it('writes a version selector when the canonical name is the binding', async () => {
     await addAsset('acme/models/chair', undefined, root, host, api);
-    expect((await loadProject(root)).manifests['.']!.assets).toEqual({
+    expect((await loadProject(root)).manifests['.']!.dependencies).toEqual({
       'acme/models/chair': '2.0.0',
     });
   });
   it.each(['2.0.0', '2', '2.3', 'latest'])(
     'accepts native version shorthand %s with a canonical key',
     async (value) => {
-      await manifest(root, { name: 'showroom', assets: { 'acme/models/chair': value } });
+      await manifest(root, { name: 'showroom', dependencies: { 'acme/models/chair': value } });
       const project = await loadProject(root);
       const lock = await resolveProject(project, host, { api });
-      expect(lock.importers['.']!.assets['acme/models/chair']).toMatchObject({
+      expect(lock.importers['.']!.dependencies['acme/models/chair']).toMatchObject({
         specifier: `acme/models/chair@${value}`,
       });
       project.lock = lock;
@@ -159,7 +164,7 @@ describe('project asset selections', () => {
   );
   it('adds HTTP URLs without registry calls, hashes, or integrity fields', async () => {
     await addAsset('https://api.example.com/acme/models/chair@1.0.0', 'chair', root, host, api);
-    const entry = (await loadProject(root)).lock!.importers['.']!.assets.chair;
+    const entry = (await loadProject(root)).lock!.importers['.']!.dependencies.chair;
     expect(entry).toEqual({
       kind: 'url',
       specifier: 'https://api.example.com/acme/models/chair@1.0.0',
@@ -172,7 +177,7 @@ describe('project asset selections', () => {
     await mkdir(join(root, 'models'));
     await writeFile(join(root, 'models/chair.glb'), 'first');
     await addAsset('models/chair.glb', 'chair', root, host, api);
-    const entry = (await loadProject(root)).lock!.importers['.']!.assets.chair;
+    const entry = (await loadProject(root)).lock!.importers['.']!.dependencies.chair;
     expect(entry).toEqual({ kind: 'file', specifier: 'file:./models/chair.glb', path: './models/chair.glb' });
     await writeFile(join(root, 'models/chair.glb'), 'edited');
     const project = await loadProject(root);
@@ -180,15 +185,15 @@ describe('project asset selections', () => {
     expect(api.resolve).not.toHaveBeenCalled();
   });
   it('discovers a root workspace and resolves file paths relative to its declaring manifest', async () => {
-    await manifest(root, { name: 'root', assets: {}, workspaces: ['levels/*'] });
+    await manifest(root, { name: 'root', dependencies: {}, workspaces: ['levels/*'] });
     const level = join(root, 'levels/lobby');
-    await manifest(level, { name: 'lobby', assets: {} });
+    await manifest(level, { name: 'lobby', dependencies: {} });
     await writeFile(join(root, 'logo.png'), 'live');
     await addAsset('../../logo.png', 'logo', level, host, api);
     const project = await loadProject(level);
     expect(project.root).toBe(root);
     expect(project.current).toBe('levels/lobby');
-    expect(project.lock!.importers['levels/lobby']!.assets.logo).toMatchObject({
+    expect(project.lock!.importers['levels/lobby']!.dependencies.logo).toMatchObject({
       kind: 'file',
       path: '../../logo.png',
     });
@@ -197,15 +202,15 @@ describe('project asset selections', () => {
   it('rejects duplicate workspace aliases before writing changes', async () => {
     await manifest(root, {
       name: 'root',
-      assets: { chair: 'https://example.com/chair.glb' },
+      dependencies: { chair: 'https://example.com/chair.glb' },
       workspaces: ['levels/*'],
     });
     const level = join(root, 'levels/lobby');
-    await manifest(level, { name: 'lobby', assets: {} });
+    await manifest(level, { name: 'lobby', dependencies: {} });
     await expect(addAsset('https://example.com/other.glb', 'chair', level, host, api)).rejects.toThrow(
       'Duplicate workspace alias',
     );
-    expect(JSON.parse(await readFile(join(level, 'assets.json'), 'utf8')).assets).toEqual({});
+    expect(JSON.parse(await readFile(join(level, 'assets.json'), 'utf8')).dependencies).toEqual({});
   });
   it('reuses locked metadata offline, even when LOA_HOST changes', async () => {
     await addAsset('acme/models/chair', 'chair', root, host, api);
@@ -217,9 +222,9 @@ describe('project asset selections', () => {
   it('frozen mode rejects changed, removed and missing lock entries without network calls', async () => {
     await addAsset('https://example.com/a.glb', 'chair', root, host, api);
     const project = await loadProject(root);
-    project.manifests['.']!.assets.chair = 'https://example.com/b.glb';
+    project.manifests['.']!.dependencies.chair = 'https://example.com/b.glb';
     await expect(resolveProject(project, host, { frozen: true, api })).rejects.toThrow('Frozen lockfile');
-    delete project.manifests['.']!.assets.chair;
+    delete project.manifests['.']!.dependencies.chair;
     await expect(resolveProject(project, host, { frozen: true, api })).rejects.toThrow('Frozen lockfile');
     delete project.lock;
     await expect(resolveProject(project, host, { frozen: true, api })).rejects.toThrow('missing');
@@ -230,13 +235,16 @@ describe('project asset selections', () => {
     const project = await loadProject(root);
     vi.mocked(api.resolve).mockClear();
     const lock = await resolveProject(project, host, { update: new Set(['chair']), api });
-    expect(lock.importers['.']!.assets.chair).toMatchObject({ version: '1.9.0', specifier: 'acme/models/chair@1' });
+    expect(lock.importers['.']!.dependencies.chair).toMatchObject({
+      version: '1.9.0',
+      specifier: 'acme/models/chair@1',
+    });
     expect(api.resolve).toHaveBeenCalledWith(host, 'acme/models/chair', '1');
   });
   it('rejects locks whose native ref or version disagrees with the manifest even when specifier text matches', async () => {
     await addAsset('acme/models/chair', 'chair', root, host, api);
     const project = await loadProject(root);
-    const entry = project.lock!.importers['.']!.assets.chair!;
+    const entry = project.lock!.importers['.']!.dependencies.chair!;
     if (entry.kind !== 'loa') throw new Error('Expected native test asset');
     entry.version = '3.0.0';
     await expect(resolveProject(project, host, { frozen: true, api })).rejects.toThrow('Frozen lockfile');

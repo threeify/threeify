@@ -54,7 +54,7 @@ export async function installProject(
         schedule,
         onResolved(entry) {
           // Metadata jobs add downloads to the same FIFO queue, then release their slot.
-          if (entry.kind === 'loa' && !cached.has(entry.hash))
+          if (entry.kind === 'loa' && entry.mode !== 'remote' && !cached.has(entry.hash))
             cached.set(
               entry.hash,
               schedule(() => cacheNativeAsset(entry, store, onBytes)),
